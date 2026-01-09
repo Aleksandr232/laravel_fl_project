@@ -5,16 +5,45 @@ use Illuminate\Http\Request;
 
 define('LARAVEL_START', microtime(true));
 
+/*
+|--------------------------------------------------------------------------
+| Register The Auto Loader
+|--------------------------------------------------------------------------
+|
+| Composer provides a convenient, automatically generated class loader
+| for our application. We just need to utilize it! We'll require it
+| into the script here so that we do not have to worry about the
+| loading of any of our classes later on.
+|
+*/
+
+// Get the base path - handle both direct access and symbolic links
+// Use realpath to resolve symbolic links to actual paths
+$publicPath = realpath(__DIR__);
+if ($publicPath === false) {
+    $publicPath = __DIR__;
+}
+$basePath = dirname($publicPath);
+
 // Determine if the application is in maintenance mode...
-if (file_exists($maintenance = __DIR__.'/../storage/framework/maintenance.php')) {
+$maintenance = $basePath . DIRECTORY_SEPARATOR . 'storage' . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'maintenance.php';
+if (file_exists($maintenance)) {
     require $maintenance;
 }
 
 // Register the Composer autoloader...
-require __DIR__.'/../vendor/autoload.php';
+$autoload = $basePath . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
+if (!file_exists($autoload)) {
+    die('Composer autoload file not found. Please run "composer install".');
+}
+require $autoload;
 
 // Bootstrap Laravel and handle the request...
 /** @var Application $app */
-$app = require_once __DIR__.'/../bootstrap/app.php';
+$bootstrap = $basePath . DIRECTORY_SEPARATOR . 'bootstrap' . DIRECTORY_SEPARATOR . 'app.php';
+if (!file_exists($bootstrap)) {
+    die('Bootstrap file not found. Please check your Laravel installation.');
+}
+$app = require_once $bootstrap;
 
 $app->handleRequest(Request::capture());
