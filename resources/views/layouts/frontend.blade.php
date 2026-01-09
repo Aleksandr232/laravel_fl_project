@@ -34,8 +34,8 @@
 
     @yield('css')
 
-    {!! Html::script('/scripts/script.min.js?v=1') !!}
-    {!! Html::script('/scripts/add.js?v=1') !!}
+    {!! Html::script('/scripts/script.min.js?v=' . filemtime(public_path('scripts/script.min.js'))) !!}
+    {!! Html::script('/scripts/add.js?v=' . filemtime(public_path('scripts/add.js'))) !!}
 
 </head>
 

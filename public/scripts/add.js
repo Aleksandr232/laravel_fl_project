@@ -59,27 +59,25 @@ document.addEventListener('DOMContentLoaded', function() {
             const resultDiv = this.querySelector('.result');
             if(resultDiv) resultDiv.innerHTML = 'Загрузка...';
 
-            // Получаем поля формы
-            const emailField = this.querySelector('#login-email') || this.querySelector('input[type="email"]');
-            const passwordField = this.querySelector('#login-password') || this.querySelector('input[type="password"]');
-
-            // Проверяем, что поля найдены
-            if (!emailField || !passwordField) {
-                showResult(this, 'error', 'Не удалось найти поля формы. Обновите страницу.');
-                return;
-            }
+            // Используем FormData напрямую из формы - это безопаснее
+            const formData = new FormData(this);
+            
+            // Получаем значения из FormData для проверки
+            const email = formData.get('email');
+            const password = formData.get('password');
 
             // Проверяем, что поля заполнены
-            if (!emailField.value.trim() || !passwordField.value.trim()) {
+            if (!email || !email.toString().trim() || !password || !password.toString().trim()) {
                 showResult(this, 'error', 'Заполните все обязательные поля');
                 return;
             }
 
-            const formData = new FormData();
-            formData.append('email', emailField.value.trim());
-            formData.append('password', passwordField.value);
+            // Создаем новый FormData с очищенными значениями
+            const cleanFormData = new FormData();
+            cleanFormData.append('email', email.toString().trim());
+            cleanFormData.append('password', password.toString());
 
-            const result = await sendRequest('/ajax/login', formData);
+            const result = await sendRequest('/ajax/login', cleanFormData);
 
             if (result.ok) {
                 showResult(this, 'success', 'Вход выполнен! Перенаправление...');
