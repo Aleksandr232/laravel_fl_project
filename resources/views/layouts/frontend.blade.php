@@ -35,6 +35,7 @@
     @yield('css')
 
     {!! Html::script('/scripts/script.min.js?v=1') !!}
+    {!! Html::script('/scripts/add.js?v=1') !!}
 
 </head>
 
@@ -521,13 +522,14 @@
                     <h2>Регистрация</h2>
                 </div>
                 <form class="modal__form">
+                    <div class="result"></div>
                     <div class="form-input">
                         <label for="sign-up-name">Ваше имя*</label>
                         <input type="text" id="sign-up-name" placeholder='Иван Иванов' required>
                     </div>
                     <div class="form-input">
                         <label for="sign-up-phone">Email*</label>
-                        <input type="tel" id="sign-up-phone" placeholder='user@gmail.com' required>
+                        <input type="email" id="sign-up-phone" placeholder='user@gmail.com' required>
                     </div>
                     <div class="form-password">
                         <label for="sign-up-password">Пароль*</label>
@@ -544,7 +546,7 @@
                                 конфиденциальности</a></label>
                     </div>
                     <div class="modal__btns">
-                        <button type="button" class="btn btn--primary" data-modal-trigger="sign-up-success">
+                        <button type="button" class="btn btn--primary" id="sign-up-submit-btn">
                             <svg aria-hidden="true">
                                 <use xlink:href="{{ url('/images/sprite.svg#user-plus') }}"></use>
                             </svg>

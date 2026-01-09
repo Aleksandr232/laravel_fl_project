@@ -82,32 +82,42 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 2. Регистрация (Register)
     const registerForm = document.querySelector('.modal[data-modal-name="sign-up"] form');
-    if (registerForm) {
-        // Ищем кнопку сабмита внутри формы регистрации
-        const regBtn = registerForm.querySelector('button[type="submit"]') || registerForm.querySelector('button.btn--primary');
-        
-        // Если кнопка не type="submit", вешаем клик, иначе событие submit на форму
-        if (regBtn.type !== 'submit') {
-            regBtn.addEventListener('click', async function(e) {
-                e.preventDefault();
-                handleRegister(registerForm);
-            });
-        } else {
-            registerForm.addEventListener('submit', async function(e) {
-                e.preventDefault();
-                handleRegister(registerForm);
-            });
-        }
+    const regBtn = document.getElementById('sign-up-submit-btn');
+    
+    if (registerForm && regBtn) {
+        regBtn.addEventListener('click', async function(e) {
+            e.preventDefault();
+            e.stopPropagation(); // Останавливаем всплытие события
+            handleRegister(registerForm);
+        });
     }
 
     async function handleRegister(form) {
         const resultDiv = form.querySelector('.result');
         if(resultDiv) resultDiv.innerHTML = 'Загрузка...';
 
+        const nameField = document.getElementById('sign-up-name');
+        const emailField = document.getElementById('sign-up-phone');
+        const passwordField = document.getElementById('sign-up-password');
+
+        // Проверка заполненности полей
+        if (!nameField || !nameField.value.trim()) {
+            showResult(form, 'error', 'Введите ваше имя');
+            return;
+        }
+        if (!emailField || !emailField.value.trim()) {
+            showResult(form, 'error', 'Введите email');
+            return;
+        }
+        if (!passwordField || !passwordField.value.trim()) {
+            showResult(form, 'error', 'Введите пароль');
+            return;
+        }
+
         const formData = new FormData();
-        formData.append('name', document.getElementById('sign-up-name').value);
-        formData.append('email', document.getElementById('sign-up-phone').value);
-        formData.append('password', document.getElementById('sign-up-password').value);
+        formData.append('name', nameField.value.trim());
+        formData.append('email', emailField.value.trim());
+        formData.append('password', passwordField.value);
 
         // Чекбокс согласия
         const agreementCheckbox = document.getElementById('sign-up-agreement');
@@ -116,6 +126,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         const result = await sendRequest('/ajax/register', formData);
+
+        console.log('Register result:', result); // Для отладки
 
         if (result.ok) {
             // 1. Очищаем форму
