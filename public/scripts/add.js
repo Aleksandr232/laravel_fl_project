@@ -70,8 +70,21 @@ document.addEventListener('DOMContentLoaded', function() {
             const result = await sendRequest('/ajax/login', formData);
 
             if (result.ok) {
-                showResult(this, 'success', 'Вход выполнен! Перезагрузка страницы...');
-                setTimeout(() => window.location.reload(), 1000);
+                showResult(this, 'success', 'Вход выполнен! Перенаправление...');
+                
+                // Закрываем модальное окно
+                const loginModal = document.querySelector('.js-modal[data-modal-name="login"]');
+                if (loginModal) {
+                    loginModal.classList.remove('is-open');
+                }
+                document.body.classList.remove('no-scroll');
+                
+                // Редирект на страницу профиля
+                if (result.data.redirect) {
+                    window.location.href = result.data.redirect;
+                } else {
+                    window.location.href = '/profile';
+                }
             } else {
                 // Если есть errors от валидации Laravel, берем их, иначе message
                 const msg = result.data.errors || result.data.message;
@@ -159,9 +172,24 @@ document.addEventListener('DOMContentLoaded', function() {
     const displayPasswordCheckboxes = document.querySelectorAll('input[type="checkbox"][id*="display-password"]');
     displayPasswordCheckboxes.forEach(checkbox => {
         checkbox.addEventListener('change', function() {
-            const passwordFieldId = this.id.replace('display-', '');
+            // Для login-display-password ищем login-password
+            // Для general-info-display-password ищем general-info-password
+            let passwordFieldId = this.id.replace('display-', '');
+            
+            // Если замена не дала результата, пробуем другой паттерн
             const passwordField = document.getElementById(passwordFieldId);
-            if (passwordField) {
+            if (!passwordField) {
+                // Пытаемся найти поле пароля рядом с чекбоксом
+                const form = this.closest('form');
+                if (form) {
+                    const passwordFields = form.querySelectorAll('input[type="password"]');
+                    // Берем первое найденное поле пароля в форме
+                    if (passwordFields.length > 0) {
+                        passwordFields[0].type = this.checked ? 'text' : 'password';
+                        return;
+                    }
+                }
+            } else {
                 passwordField.type = this.checked ? 'text' : 'password';
             }
         });

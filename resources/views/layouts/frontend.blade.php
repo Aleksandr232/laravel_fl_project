@@ -483,23 +483,24 @@
                     <h2>Вход в личный кабинет</h2>
                 </div>
                 <form class="modal__form">
+                    <div class="result"></div>
                     <div class="form-input">
                         <label for="login-email">Email*</label>
-                        <input type="tel" id="login-email" placeholder='user@gmail.com' required>
+                        <input type="email" id="login-email" name="email" placeholder='user@gmail.com' required>
                     </div>
                     <div class="form-password">
                         <label for="login-password">Пароль*</label>
                         <button type="button" class="form-forgot-btn btn btn--link"
                                 data-modal-trigger="password-recovery">Забыли пароль?
                         </button>
-                        <input type="password" id="login-password" placeholder='*******' required>
+                        <input type="password" id="login-password" name="password" placeholder='*******' required>
                         <div class="form-display-btn">
                             <input type="checkbox" id="login-display-password">
                             <label for="login-display-password">Показать пароль</label>
                         </div>
                     </div>
                     <div class="modal__btns">
-                        <button type="button" class="btn btn--primary">
+                        <button type="submit" class="btn btn--primary">
                             <svg aria-hidden="true">
                                 <use xlink:href="{{ url('/images/sprite.svg#login') }}"></use>
                             </svg>
