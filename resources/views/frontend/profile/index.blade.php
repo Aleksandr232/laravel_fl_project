@@ -1068,6 +1068,10 @@
                             <label for="general-info-phone">Номер телефона*</label>
                             <input type="tel" id="general-info-phone" placeholder='+7 900 000-00-00' value="{{ $client->phone ?? '' }}" readonly>
                         </div>
+                        <div class="form-input">
+                            <label for="general-info-email">Email*</label>
+                            <input type="email" id="general-info-email" placeholder='user@gmail.com' value="{{ $client->email ?? '' }}" readonly>
+                        </div>
                         <div class="form-password">
                             <label for="general-info-password">Пароль*</label>
                             <input type="password" id="general-info-password" placeholder='*******' required>
