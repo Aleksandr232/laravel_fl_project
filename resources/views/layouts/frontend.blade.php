@@ -174,12 +174,21 @@
                     <span class="header__cart-count">10</span>
                 </div>
 
-                <button type="button" class="header__login-btn btn" data-modal-trigger="login">
-                    <svg aria-hidden="true" class="orange">
-                        <use xlink:href="{{ url('/images/sprite.svg#user') }}"></use>
-                    </svg>
-                    <span>Вход/Регистрация</span>
-                </button>
+                @if(Auth::guard('client')->check())
+                    <a href="{{ route('frontend.profile.index') }}" class="header__login-btn btn">
+                        <svg aria-hidden="true" class="orange">
+                            <use xlink:href="{{ url('/images/sprite.svg#user') }}"></use>
+                        </svg>
+                        <span>Личный кабинет</span>
+                    </a>
+                @else
+                    <button type="button" class="header__login-btn btn" data-modal-trigger="login">
+                        <svg aria-hidden="true" class="orange">
+                            <use xlink:href="{{ url('/images/sprite.svg#user') }}"></use>
+                        </svg>
+                        <span>Вход/Регистрация</span>
+                    </button>
+                @endif
 
 
                 <a href="./converters.html" class="header__converters-btn btn btn--link">
