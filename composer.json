@@ -6,28 +6,29 @@
     "keywords": ["laravel", "framework"],
     "license": "MIT",
     "require": {
-        "php": "^8.1",
-        "doctrine/dbal": "^3.8",
+        "php": "^8.2",
+        "doctrine/dbal": "^4.3",
         "guzzlehttp/guzzle": "^7.10",
         "intervention/image": "^3.11",
         "janickiy/html": "^1.0",
         "janickiy/laravel-menu": "^2.0",
-        "laravel/framework": "^10.48",
-        "laravel/sanctum": "^3.3",
-        "laravel/tinker": "^2.9",
-        "spatie/laravel-sitemap": "^6.4",
-        "yajra/laravel-datatables-buttons": "^10.0",
-        "yajra/laravel-datatables-html": "^10.0"
+        "laravel/framework": "^12.0",
+        "laravel/sanctum": "^4.2",
+        "laravel/tinker": "^2.10",
+        "spatie/laravel-sitemap": "^7.3",
+        "yajra/laravel-datatables-buttons": "^12.1",
+        "yajra/laravel-datatables-html": "^12.0"
     },
     "require-dev": {
         "barryvdh/laravel-debugbar": "*",
         "fakerphp/faker": "^1.23",
-        "laravel/pint": "^1.20",
-        "laravel/sail": "^1.26",
+        "laravel/pail": "^1.2.2",
+        "laravel/pint": "^1.24",
+        "laravel/sail": "^1.41",
         "mockery/mockery": "^1.6",
-        "nunomaduro/collision": "^7.10",
-        "phpunit/phpunit": "^10.5",
-        "spatie/laravel-ignition": "^2.4"
+        "nunomaduro/collision": "^8.6",
+        "phpunit/phpunit": "^11.5.3",
+        "spatie/laravel-ignition": "^2.9"
     },
     "autoload": {
         "psr-4": {
@@ -59,7 +60,7 @@
         ],
         "dev": [
             "Composer\\Config::disableProcessTimeout",
-            "npx concurrently -c \"#93c5fd,#c4b5fd,#fb7185,#fdba74\" \"php artisan serve\" \"php artisan queue:listen --tries=1\" \"npm run dev\" --names=server,queue,vite --kill-others"
+            "npx concurrently -c \"#93c5fd,#c4b5fd,#fb7185,#fdba74\" \"php artisan serve\" \"php artisan queue:listen --tries=1\" \"php artisan pail --timeout=0\" \"npm run dev\" --names=server,queue,logs,vite --kill-others"
         ],
         "test": [
             "@php artisan config:clear --ansi",
