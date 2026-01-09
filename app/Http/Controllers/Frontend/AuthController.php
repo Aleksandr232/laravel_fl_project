@@ -110,12 +110,20 @@ class AuthController extends Controller
         return back()->withErrors(['email' => __($status)]);
     }
 
-    public function logout(Request $request): RedirectResponse
+    public function logout(Request $request): RedirectResponse|JsonResponse
     {
-        Auth::logout();
+        Auth::guard('client')->logout();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Вы успешно вышли',
+                'redirect' => route('frontend.index'),
+            ]);
+        }
 
         return redirect()->route('frontend.index');
     }

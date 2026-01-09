@@ -127,29 +127,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const result = await sendRequest('/ajax/register', formData);
 
-        console.log('Register result:', result); // Для отладки
-
         if (result.ok) {
             // 1. Очищаем форму
             form.reset();
             if(resultDiv) resultDiv.innerHTML = ''; 
 
-            // 2. Находим модальные окна
+            // 2. Закрываем все модальные окна
             const signUpModal = document.querySelector('.js-modal[data-modal-name="sign-up"]');
-            const successModal = document.querySelector('.js-modal[data-modal-name="sign-up-success"]');
-
-            // 3. Закрываем окно регистрации
             if (signUpModal) {
                 signUpModal.classList.remove('is-open');
             }
-
-            // 4. Открываем окно успеха
-            if (successModal) {
-                successModal.classList.add('is-open');
-            }
             
-            // 5. Убеждаемся, что прокрутка body заблокирована (стиль шаблона)
-            document.body.classList.add('no-scroll');
+            // 3. Разблокируем прокрутку
+            document.body.classList.remove('no-scroll');
+
+            // 4. Редирект на страницу профиля
+            if (result.data.redirect) {
+                window.location.href = result.data.redirect;
+            } else {
+                // Если redirect не пришел, используем стандартный путь
+                window.location.href = '/profile';
+            }
 
         } else {
             const msg = result.data.errors || result.data.message;
@@ -168,6 +166,25 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    // 4. Выход из аккаунта
+    const logoutBtn = document.querySelector('.tab__btn.btn');
+    if (logoutBtn && logoutBtn.textContent.includes('Выйти')) {
+        logoutBtn.addEventListener('click', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData();
+            const result = await sendRequest('/ajax/logout', formData);
+            
+            if (result.ok) {
+                if (result.data.redirect) {
+                    window.location.href = result.data.redirect;
+                } else {
+                    window.location.href = '/';
+                }
+            }
+        });
+    }
 
     // 3. Восстановление пароля
     const recoveryForm = document.querySelector('.modal[data-modal-name="password-recovery"] form');

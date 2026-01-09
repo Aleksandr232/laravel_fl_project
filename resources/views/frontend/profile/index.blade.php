@@ -76,9 +76,15 @@
                     </div>
                     <div class="profile__info">
                         <dl class="profile__list general">
+                            @if($client->phone)
                             <div class="profile__point">
                                 <dt class="profile__point-title">Номер телефона</dt>
-                                <dd class="profile__point-text">+ 7 900 000-00-00</dd>
+                                <dd class="profile__point-text">{{ $client->phone }}</dd>
+                            </div>
+                            @endif
+                            <div class="profile__point">
+                                <dt class="profile__point-title">Email</dt>
+                                <dd class="profile__point-text">{{ $client->email }}</dd>
                             </div>
                             <div class="profile__point">
                                 <dt class="profile__point-title">Пароль</dt>
@@ -86,7 +92,7 @@
                             </div>
                             <div class="profile__point">
                                 <dt class="profile__point-title">Имя</dt>
-                                <dd class="profile__point-text">Иван Иванов</dd>
+                                <dd class="profile__point-text">{{ $client->name }}</dd>
                             </div>
                         </dl>
                     </div>
@@ -1060,7 +1066,7 @@
                     <form class="modal__form is-success">
                         <div class="form-input">
                             <label for="general-info-phone">Номер телефона*</label>
-                            <input type="tel" id="general-info-phone" placeholder='+7 900 000-00-00' value="+7 900 000-00-00" readonly>
+                            <input type="tel" id="general-info-phone" placeholder='+7 900 000-00-00' value="{{ $client->phone ?? '' }}" readonly>
                         </div>
                         <div class="form-password">
                             <label for="general-info-password">Пароль*</label>
@@ -1080,7 +1086,7 @@
                         </div>
                         <div class="form-input">
                             <label for="general-info-name">Ваше имя</label>
-                            <input type="text" id="general-info-name" placeholder='Иван Иванов'>
+                            <input type="text" id="general-info-name" placeholder='Иван Иванов' value="{{ $client->name ?? '' }}">
                         </div>
                         <div class="modal__btns">
                             <button type="button" class="btn btn--primary">

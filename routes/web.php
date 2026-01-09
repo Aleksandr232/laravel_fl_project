@@ -51,10 +51,11 @@ Route::any('/conditions', [FrontendController::class, 'conditions'])->name('fron
 Route::get('product/{slug}', [FrontendController::class, 'product'])->name('frontend.product');
 
 
-Route::group(['prefix' => 'profile'], function () {
+Route::group(['prefix' => 'profile', 'middleware' => ['auth:client']], function () {
     Route::get('', [ProfileController::class, 'index'])->name('frontend.profile.index');
 });
 
 // Ajax маршруты для авторизации
 Route::post('/ajax/login', [AuthController::class, 'login'])->name('frontend.ajax.login');
 Route::post('/ajax/register', [AuthController::class, 'register'])->name('frontend.ajax.register');
+Route::post('/ajax/logout', [AuthController::class, 'logout'])->name('frontend.ajax.logout');

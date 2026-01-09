@@ -9,6 +9,7 @@ use App\Models\Feedback;
 use App\Models\Seo;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\Auth;
 
 class ProfileController extends Controller
 {
@@ -31,6 +32,7 @@ class ProfileController extends Controller
         $catalogsList = Catalog::getCatalogList();
         $catalogs = Catalog::orderBy('name')->where('parent_id', 0)->get();
         $options = Feedback::getPlatformList();
+        $client = Auth::guard('client')->user();
 
         return view('frontend.profile.index', compact(
                 'meta_description',
@@ -42,7 +44,8 @@ class ProfileController extends Controller
                 'catalogsList',
                 'h1',
                 'seo_url_canonical',
-                'title'
+                'title',
+                'client'
             )
         )->with('title', $title);
     }
