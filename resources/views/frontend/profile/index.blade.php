@@ -52,7 +52,7 @@
                 </label>
             </li>
             <li class="tab">
-                <button type="button" class="tab__btn btn">
+                <button type="button" class="tab__btn btn" id="logout-btn">
                     <svg aria-hidden="true">
                         <use xlink:href="{{ url('/images/sprite.svg#logout') }}"></use>
                     </svg>

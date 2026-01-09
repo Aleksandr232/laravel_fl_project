@@ -168,20 +168,25 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // 4. Выход из аккаунта
-    const logoutBtn = document.querySelector('.tab__btn.btn');
-    if (logoutBtn && logoutBtn.textContent.includes('Выйти')) {
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) {
         logoutBtn.addEventListener('click', async function(e) {
             e.preventDefault();
+            e.stopPropagation();
             
             const formData = new FormData();
             const result = await sendRequest('/ajax/logout', formData);
             
             if (result.ok) {
+                // Редирект на главную страницу
                 if (result.data.redirect) {
                     window.location.href = result.data.redirect;
                 } else {
                     window.location.href = '/';
                 }
+            } else {
+                // Если произошла ошибка, все равно перенаправляем на главную
+                window.location.href = '/';
             }
         });
     }

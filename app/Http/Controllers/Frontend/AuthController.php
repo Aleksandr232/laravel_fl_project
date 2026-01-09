@@ -117,7 +117,8 @@ class AuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        if ($request->expectsJson()) {
+        // Проверяем, является ли запрос ajax запросом
+        if ($request->ajax() || $request->expectsJson() || $request->wantsJson()) {
             return response()->json([
                 'success' => true,
                 'message' => 'Вы успешно вышли',
