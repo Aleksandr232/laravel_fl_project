@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Frontend\FrontendController;
 use App\Http\Controllers\Frontend\ProfileController;
+use App\Http\Controllers\Frontend\AuthController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -53,3 +54,7 @@ Route::get('product/{slug}', [FrontendController::class, 'product'])->name('fron
 Route::group(['prefix' => 'profile'], function () {
     Route::get('', [ProfileController::class, 'index'])->name('frontend.profile.index');
 });
+
+// Ajax маршруты для авторизации
+Route::post('/ajax/login', [AuthController::class, 'login'])->name('frontend.ajax.login');
+Route::post('/ajax/register', [AuthController::class, 'register'])->name('frontend.ajax.register');

@@ -7,7 +7,7 @@ use App\Http\Requests\Frontend\Auth\LoginRequest;
 use App\Http\Requests\Frontend\Auth\RegisterRequest;
 use App\Http\Requests\Frontend\Auth\ForgotPasswordRequest;
 use App\Http\Requests\Frontend\Auth\ResetPasswordRequest;
-use App\Models\User;
+use App\Models\Clients;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\JsonResponse;
@@ -27,7 +27,7 @@ class AuthController extends Controller
             'password' => $request->password,
         ];
 
-        if (Auth::attempt($credentials, $request->boolean('remember'))) {
+        if (Auth::guard('client')->attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
 
             return response()->json([
@@ -45,15 +45,13 @@ class AuthController extends Controller
 
     public function register(RegisterRequest $request): JsonResponse
     {
-        $user = User::create([
+        $client = Clients::create([
             'name' => $request->name,
             'email' => $request->email,
-            'login' => $request->email,
             'password' => Hash::make($request->password),
-            'role' => User::ROLE_USER,
         ]);
 
-        Auth::login($user);
+        Auth::guard('client')->login($client);
 
         return response()->json([
             'success' => true,

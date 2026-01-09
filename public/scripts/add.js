@@ -145,6 +145,18 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Обработчики для показа/скрытия паролей
+    const displayPasswordCheckboxes = document.querySelectorAll('input[type="checkbox"][id*="display-password"]');
+    displayPasswordCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const passwordFieldId = this.id.replace('display-', '');
+            const passwordField = document.getElementById(passwordFieldId);
+            if (passwordField) {
+                passwordField.type = this.checked ? 'text' : 'password';
+            }
+        });
+    });
+
     // 3. Восстановление пароля
     const recoveryForm = document.querySelector('.modal[data-modal-name="password-recovery"] form');
     if (recoveryForm) {
