@@ -18,12 +18,18 @@ define('LARAVEL_START', microtime(true));
 */
 
 // Get the base path - handle both direct access and symbolic links
-// Use realpath to resolve symbolic links to actual paths
+// Always use realpath to resolve symbolic links to actual paths
 $publicPath = realpath(__DIR__);
 if ($publicPath === false) {
+    // Fallback: if realpath fails, use __DIR__ directly
     $publicPath = __DIR__;
 }
 $basePath = dirname($publicPath);
+
+// Ensure we're working with absolute paths
+if (!file_exists($basePath)) {
+    die('Base path not found: ' . $basePath);
+}
 
 // Determine if the application is in maintenance mode...
 $maintenance = $basePath . DIRECTORY_SEPARATOR . 'storage' . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'maintenance.php';
