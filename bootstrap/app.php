@@ -27,6 +27,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission' => \App\Http\Middleware\Permission::class,
         ]);
         $middleware->append(\App\Http\Middleware\RedirectTo::class);
+        
+        // Настройка редиректа для неавторизованных пользователей
+        $middleware->redirectGuestsTo(route('frontend.index'));
     })
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->render(function (NotFoundHttpException $e, Request $request) {
