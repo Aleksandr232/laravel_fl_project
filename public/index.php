@@ -21,14 +21,31 @@ define('LARAVEL_START', microtime(true));
 // Always use realpath to resolve symbolic links to actual paths
 $publicPath = realpath(__DIR__);
 if ($publicPath === false) {
-    // Fallback: if realpath fails, use __DIR__ directly
     $publicPath = __DIR__;
 }
+
+// Determine base path
+// If public_html is a real directory (not a symlink), we need to find the project directory
 $basePath = dirname($publicPath);
+
+// Check if we're in public_html and need to go to project directory
+// This handles the case when public_html is a real folder, not a symlink
+if (basename($publicPath) === 'public_html' || basename(dirname($publicPath)) === 'public_html') {
+    // Try to find project directory at the same level as public_html
+    $parentDir = dirname($publicPath);
+    $projectPath = $parentDir . DIRECTORY_SEPARATOR . 'project';
+    
+    if (file_exists($projectPath) && is_dir($projectPath)) {
+        $basePath = $projectPath;
+    }
+} else {
+    // Normal case: public is inside project directory
+    $basePath = dirname($publicPath);
+}
 
 // Ensure we're working with absolute paths
 if (!file_exists($basePath)) {
-    die('Base path not found: ' . $basePath);
+    die('Base path not found: ' . $basePath . '<br>Current directory: ' . __DIR__ . '<br>Public path: ' . $publicPath);
 }
 
 // Determine if the application is in maintenance mode...
