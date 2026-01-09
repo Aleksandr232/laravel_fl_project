@@ -59,12 +59,24 @@ document.addEventListener('DOMContentLoaded', function() {
             const resultDiv = this.querySelector('.result');
             if(resultDiv) resultDiv.innerHTML = 'Загрузка...';
 
-            const formData = new FormData();
-            // Ищем поле по типу email или по ID
-            const emailField = this.querySelector('input[type="email"]') || this.querySelector('#login-email');
-            const passwordField = this.querySelector('input[type="password"]');
+            // Получаем поля формы
+            const emailField = this.querySelector('#login-email') || this.querySelector('input[type="email"]');
+            const passwordField = this.querySelector('#login-password') || this.querySelector('input[type="password"]');
 
-            formData.append('email', emailField.value);
+            // Проверяем, что поля найдены
+            if (!emailField || !passwordField) {
+                showResult(this, 'error', 'Не удалось найти поля формы. Обновите страницу.');
+                return;
+            }
+
+            // Проверяем, что поля заполнены
+            if (!emailField.value.trim() || !passwordField.value.trim()) {
+                showResult(this, 'error', 'Заполните все обязательные поля');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('email', emailField.value.trim());
             formData.append('password', passwordField.value);
 
             const result = await sendRequest('/ajax/login', formData);
