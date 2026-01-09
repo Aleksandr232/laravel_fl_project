@@ -16,14 +16,10 @@ class ProfileController extends Controller
     /**
      * Страница профиля
      *
-     * @return View|RedirectResponse
+     * @return View
      */
-    public function index(): View|RedirectResponse
+    public function index(): View
     {
-        // Проверяем авторизацию вручную, если middleware не сработал
-        if (!Auth::guard('client')->check()) {
-            return redirect()->route('frontend.index');
-        }
         $seo = Seo::getSeo('frontend.profile', 'Личный кабинет');
         $title = $seo['title'];
         $meta_description = $seo['meta_description'];

@@ -29,7 +29,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->append(\App\Http\Middleware\RedirectTo::class);
         
         // Настройка редиректа для неавторизованных пользователей
-        $middleware->redirectGuestsTo(route('frontend.index'));
+        $middleware->redirectGuestsTo('/');
     })
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->render(function (NotFoundHttpException $e, Request $request) {
