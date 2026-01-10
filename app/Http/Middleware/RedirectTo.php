@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use App\Models\Redirect;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Symfony\Component\HttpFoundation\Response;
 use Closure;
 
@@ -27,23 +28,35 @@ class RedirectTo
     public function handle(Request $request, Closure $next): Response
     {
         try {
-            $currentURL = request()->path();
-            
-            // Проверяем, что база данных доступна и таблица существует
+            // Проверяем, что таблица существует (с обработкой ошибок подключения к БД)
             try {
-                $redirect = Redirect::where('from', $currentURL)->first();
+                if (!Schema::hasTable('redirect')) {
+                    return $next($request);
+                }
             } catch (\Exception $e) {
-                // Если таблица не существует или база недоступна, продолжаем без редиректа
-                \Log::warning('RedirectTo middleware: ошибка при проверке редиректа: ' . $e->getMessage());
+                // Если база данных недоступна, продолжаем без редиректа
+                Log::debug('RedirectTo middleware: база данных недоступна или таблица не существует');
                 return $next($request);
             }
 
-            if ($redirect) {
-                return redirect()->to($redirect->to, (int)$redirect->status);
+            $currentURL = request()->path();
+            
+            // Проверяем наличие редиректа для текущего URL
+            try {
+                $redirect = Redirect::where('from', $currentURL)->first();
+
+                if ($redirect && $redirect->to) {
+                    $statusCode = $redirect->status ? (int)$redirect->status : 301;
+                    return redirect()->to($redirect->to, $statusCode);
+                }
+            } catch (\Exception $e) {
+                // Если произошла ошибка при запросе, продолжаем без редиректа
+                Log::warning('RedirectTo middleware: ошибка при проверке редиректа: ' . $e->getMessage());
+                return $next($request);
             }
         } catch (\Exception $e) {
             // В случае любой ошибки просто продолжаем выполнение запроса
-            \Log::warning('RedirectTo middleware: ошибка: ' . $e->getMessage());
+            Log::warning('RedirectTo middleware: общая ошибка: ' . $e->getMessage());
         }
         
         return $next($request);
