@@ -1136,10 +1136,11 @@
                     <div class="modal__title">
                         <h2>Изменить информацию о&nbsp;компании</h2>
                     </div>
-                    <form class="modal__form is-success">
+                    <form class="modal__form" id="company-info-form">
+                        <div class="result"></div>
                         <div class="form-input">
                             <label for="company-info-company-name">Название компании*</label>
-                            <input type="text" id="company-info-company-name" placeholder='ООО “ЭлектроМонтаж”' required>
+                            <input type="text" id="company-info-company-name" name="name" placeholder='ООО “ЭлектроМонтаж”' required>
                         </div>
                         <div class="form-input">
                             <label for="company-info-inn">ИНН*</label>

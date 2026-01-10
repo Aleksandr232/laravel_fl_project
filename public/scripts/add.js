@@ -662,27 +662,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
 
-                // Закрываем модальное окно через короткую задержку
-                const closeTimeoutId = setTimeout(() => {
-                    if (companyInfoModal && companyInfoModal.classList.contains('is-open')) {
-                        const closeBtn = companyInfoModal.querySelector('.js-modal-close');
-                        if (closeBtn) {
-                            closeBtn.click();
-                        } else {
-                            companyInfoModal.classList.remove('is-open');
-                            document.body.classList.remove('no-scroll');
-                        }
-                    }
-                    
-                    // Очищаем сообщение результата и сбрасываем флаг после закрытия
-                    setTimeout(() => {
-                        if(resultDiv) resultDiv.innerHTML = '';
-                        companyInfoForm.dataset.closeTimeout = '';
-                    }, 300);
-                }, 1500);
-                
-                // Сохраняем ID timeout для возможной отмены
-                companyInfoForm.dataset.closeTimeout = closeTimeoutId;
+                // Не закрываем модальное окно автоматически - пользователь сам закроет его
+                // Результат уже показан в resultDiv
 
             } else {
                 const msg = result.data.errors || result.data.message;
