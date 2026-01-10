@@ -317,24 +317,104 @@ document.addEventListener('DOMContentLoaded', function() {
             if (result.ok) {
                 showResult(this, 'success', result.data.message || 'Данные успешно обновлены');
                 
-                // Обновляем данные на странице без перезагрузки (если имя изменено)
-                if (name && name.trim()) {
-                    const nameDisplay = document.querySelector('.profile__point:has(.profile__point-title:contains("Имя")) .profile__point-text');
-                    if (nameDisplay) {
-                        nameDisplay.textContent = name.trim();
+                // Обновляем данные на странице без перезагрузки
+                const changedFields = result.data.changed_fields || [];
+                
+                // Получаем новые значения из формы
+                const newName = name && name.trim() ? name.trim() : null;
+                const newPhone = formData.get('phone') && formData.get('phone').trim() ? formData.get('phone').trim() : null;
+                
+                // Обновляем имя, если оно было изменено
+                if (changedFields.includes('name') && newName) {
+                    const profileList = document.querySelector('.profile__list.general');
+                    if (profileList) {
+                        const namePoints = profileList.querySelectorAll('.profile__point');
+                        namePoints.forEach(point => {
+                            const title = point.querySelector('.profile__point-title');
+                            if (title && title.textContent.trim() === 'Имя') {
+                                const textElement = point.querySelector('.profile__point-text');
+                                if (textElement) {
+                                    textElement.textContent = newName;
+                                }
+                            }
+                        });
                     }
                 }
 
+                // Обновляем телефон, если он был изменен
+                if (changedFields.includes('phone')) {
+                    const profileList = document.querySelector('.profile__list.general');
+                    if (profileList) {
+                        // Ищем существующий блок с телефоном
+                        let phonePoint = null;
+                        const allPoints = profileList.querySelectorAll('.profile__point');
+                        allPoints.forEach(point => {
+                            const title = point.querySelector('.profile__point-title');
+                            if (title && title.textContent.trim() === 'Номер телефона') {
+                                phonePoint = point;
+                            }
+                        });
+                        
+                        if (phonePoint) {
+                            // Обновляем существующий телефон
+                            const textElement = phonePoint.querySelector('.profile__point-text');
+                            if (textElement) {
+                                if (newPhone) {
+                                    textElement.textContent = newPhone;
+                                } else {
+                                    // Если телефон был удален, удаляем блок
+                                    phonePoint.remove();
+                                }
+                            }
+                        } else if (newPhone) {
+                            // Если блока с телефоном нет, но телефон был добавлен, создаем его
+                            // Телефон должен быть ПЕРВЫМ в списке (перед Email)
+                            const firstPoint = profileList.querySelector('.profile__point');
+                            if (firstPoint && firstPoint.parentNode) {
+                                const phoneDiv = document.createElement('div');
+                                phoneDiv.className = 'profile__point';
+                                phoneDiv.innerHTML = `
+                                    <dt class="profile__point-title">Номер телефона</dt>
+                                    <dd class="profile__point-text">${newPhone}</dd>
+                                `;
+                                // Вставляем в начало списка
+                                profileList.insertBefore(phoneDiv, firstPoint);
+                            }
+                        }
+                    }
+                }
+
+                // Если пароль был изменен, в профиле все равно показываем звездочки (пароль захеширован)
+
                 // Очищаем поля пароля после успешного сохранения
-                const passwordFields = this.querySelectorAll('input[type="password"]');
+                const passwordFields = this.querySelectorAll('input[type="password"], input[type="text"]');
                 passwordFields.forEach(field => {
-                    field.value = '';
+                    if (field.name === 'password' || field.name === 'password_confirmation') {
+                        field.value = '';
+                        // Возвращаем тип обратно в password, если был text
+                        if (field.type === 'text') {
+                            field.type = 'password';
+                        }
+                    }
                 });
 
-                // Скрываем сообщение через 3 секунды
+                // Сбрасываем чекбоксы показа пароля
+                const displayCheckboxes = this.querySelectorAll('input[type="checkbox"][id*="display"]');
+                displayCheckboxes.forEach(checkbox => {
+                    checkbox.checked = false;
+                });
+
+                // Закрываем модальное окно через короткую задержку (чтобы пользователь видел сообщение об успехе)
                 setTimeout(() => {
+                    const generalInfoModal = document.querySelector('.js-modal[data-modal-name="general-info"]');
+                    if (generalInfoModal) {
+                        generalInfoModal.classList.remove('is-open');
+                    }
+                    document.body.classList.remove('no-scroll');
+                    
+                    // Очищаем сообщение результата
                     if(resultDiv) resultDiv.innerHTML = '';
-                }, 3000);
+                }, 1500);
 
             } else {
                 const msg = result.data.errors || result.data.message;
