@@ -113,7 +113,7 @@
                         <dl class="profile__list">
                             <div class="profile__point">
                                 <dt class="profile__point-title">Компания</dt>
-                                <dd class="profile__point-text">ООО “ЭлектроМонтаж”</dd>
+                                <dd class="profile__point-text">{{ $company->name ?? 'ООО “ЭлектроМонтаж” ' }}</dd>
                             </div>
                             <div class="profile__point">
                                 <dt class="profile__point-title">ИНН</dt>
