@@ -182,12 +182,27 @@ class ProfileController extends Controller
                         if (str_contains($errorMessage, 'Invalid login or password') || 
                             str_contains($errorMessage, '535') || 
                             str_contains($errorMessage, 'authentication')) {
-                            Log::error('Проблема с учетными данными SMTP. Проверьте MAIL_USERNAME и MAIL_PASSWORD в .env');
-                            Log::error('Текущий MAIL_USERNAME: ' . config('mail.mailers.smtp.username'));
-                            Log::error('Проверьте, что пароль правильный и нет лишних пробелов');
+                            Log::error('❌ ПРОБЛЕМА С УЧЕТНЫМИ ДАННЫМИ SMTP');
+                            Log::error('Проверьте настройки в .env файле:');
+                            Log::error('  - MAIL_USERNAME: ' . (config('mail.mailers.smtp.username') ?: 'НЕ УСТАНОВЛЕН'));
+                            Log::error('  - MAIL_PASSWORD: ' . (config('mail.mailers.smtp.password') ? 'УСТАНОВЛЕН' : 'НЕ УСТАНОВЛЕН'));
+                            Log::error('  - MAIL_HOST: ' . (config('mail.mailers.smtp.host') ?: 'НЕ УСТАНОВЛЕН'));
+                            Log::error('  - MAIL_PORT: ' . (config('mail.mailers.smtp.port') ?: 'НЕ УСТАНОВЛЕН'));
+                            Log::error('  - MAIL_ENCRYPTION: ' . (config('mail.mailers.smtp.encryption') ?: 'НЕ УСТАНОВЛЕН'));
+                            Log::error('');
+                            Log::error('РЕШЕНИЕ:');
+                            Log::error('1. Проверьте правильность пароля в .env (без пробелов в начале/конце)');
+                            Log::error('2. Для Gmail/Yandex используйте "Пароль приложения" вместо обычного пароля');
+                            Log::error('3. Убедитесь, что включена двухфакторная аутентификация');
+                            Log::error('4. Проверьте, что MAIL_HOST и MAIL_PORT правильные для вашего провайдера');
+                            Log::error('5. После исправления выполните: php artisan config:clear');
                         } elseif (str_contains($errorMessage, 'Connection') || str_contains($errorMessage, 'timeout')) {
-                            Log::error('Проблема с подключением к SMTP серверу. Проверьте MAIL_HOST и MAIL_PORT');
-                            Log::error('Текущие настройки: HOST=' . config('mail.mailers.smtp.host') . ', PORT=' . config('mail.mailers.smtp.port'));
+                            Log::error('❌ ПРОБЛЕМА С ПОДКЛЮЧЕНИЕМ К SMTP СЕРВЕРУ');
+                            Log::error('Текущие настройки:');
+                            Log::error('  - HOST: ' . config('mail.mailers.smtp.host'));
+                            Log::error('  - PORT: ' . config('mail.mailers.smtp.port'));
+                            Log::error('  - ENCRYPTION: ' . config('mail.mailers.smtp.encryption'));
+                            Log::error('Проверьте доступность SMTP сервера и правильность настроек');
                         }
                     } catch (\Exception $e) {
                         // Логируем ошибку отправки письма, но не прерываем процесс обновления
@@ -205,15 +220,9 @@ class ProfileController extends Controller
             $message = 'Данные успешно обновлены';
             $emailSent = false;
             
-            if (!empty($changedFields)) {
-                $shouldSendEmail = in_array('password', $changedFields) || 
-                                  in_array('email', $changedFields) || 
-                                  in_array('phone', $changedFields);
-                if ($shouldSendEmail && config('app.key')) {
-                    $message .= '. Уведомление отправлено на ваш email.';
-                    $emailSent = true;
-                }
-            }
+            // Проверяем, пытались ли мы отправить письмо (проверка по логам не нужна для пользователя)
+            // Пользователю всегда говорим, что данные обновлены успешно
+            // Проблемы с отправкой письма логируются отдельно
 
             return response()->json([
                 'success' => true,
