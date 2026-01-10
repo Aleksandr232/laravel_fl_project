@@ -260,4 +260,74 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    // 5. Обновление профиля
+    const generalInfoForm = document.getElementById('general-info-form');
+    if (generalInfoForm) {
+        generalInfoForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const resultDiv = this.querySelector('.result');
+            if(resultDiv) resultDiv.innerHTML = 'Загрузка...';
+
+            const formData = new FormData(this);
+            
+            // Получаем значения из FormData для проверки
+            const password = formData.get('password');
+            const passwordConfirmation = formData.get('password_confirmation');
+            const name = formData.get('name');
+
+            // Проверяем, что если пароль заполнен, то и подтверждение тоже
+            if (password && password.trim() && (!passwordConfirmation || !passwordConfirmation.trim())) {
+                showResult(this, 'error', 'Подтвердите пароль');
+                return;
+            }
+
+            // Проверяем совпадение паролей
+            if (password && password.trim() && password !== passwordConfirmation) {
+                showResult(this, 'error', 'Пароли не совпадают');
+                return;
+            }
+
+            // Минимальная длина пароля
+            if (password && password.trim() && password.length < 6) {
+                showResult(this, 'error', 'Пароль должен содержать минимум 6 символов');
+                return;
+            }
+
+            // Если пароль не заполнен, удаляем его из FormData
+            if (!password || !password.trim()) {
+                formData.delete('password');
+                formData.delete('password_confirmation');
+            }
+
+            const result = await sendRequest('/profile/update', formData);
+
+            if (result.ok) {
+                showResult(this, 'success', result.data.message || 'Данные успешно обновлены');
+                
+                // Обновляем данные на странице без перезагрузки (если имя изменено)
+                if (name && name.trim()) {
+                    const nameDisplay = document.querySelector('.profile__point:has(.profile__point-title:contains("Имя")) .profile__point-text');
+                    if (nameDisplay) {
+                        nameDisplay.textContent = name.trim();
+                    }
+                }
+
+                // Очищаем поля пароля после успешного сохранения
+                const passwordFields = this.querySelectorAll('input[type="password"]');
+                passwordFields.forEach(field => {
+                    field.value = '';
+                });
+
+                // Скрываем сообщение через 3 секунды
+                setTimeout(() => {
+                    if(resultDiv) resultDiv.innerHTML = '';
+                }, 3000);
+
+            } else {
+                const msg = result.data.errors || result.data.message;
+                showResult(this, 'error', msg);
+            }
+        });
+    }
 });

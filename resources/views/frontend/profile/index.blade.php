@@ -1063,26 +1063,27 @@
                     <div class="modal__title">
                         <h2>Изменить общую информацию</h2>
                     </div>
-                    <form class="modal__form is-success">
+                    <form class="modal__form" id="general-info-form">
+                        <div class="result"></div>
                         <div class="form-input">
                             <label for="general-info-phone">Номер телефона*</label>
-                            <input type="tel" id="general-info-phone" placeholder='+7 900 000-00-00' value="{{ $client->phone ?? '' }}" readonly>
+                            <input type="tel" id="general-info-phone" name="phone" placeholder='+7 900 000-00-00' value="{{ $client->phone ?? '' }}" readonly>
                         </div>
                         <div class="form-input">
                             <label for="general-info-email">Email*</label>
-                            <input type="email" id="general-info-email" placeholder='user@gmail.com' value="{{ $client->email ?? '' }}" readonly>
+                            <input type="email" id="general-info-email" name="email" placeholder='user@gmail.com' value="{{ $client->email ?? '' }}" readonly>
                         </div>
                         <div class="form-password">
-                            <label for="general-info-password">Пароль*</label>
-                            <input type="password" id="general-info-password" placeholder='*******' required>
+                            <label for="general-info-password">Новый пароль (оставьте пустым, если не хотите менять)</label>
+                            <input type="password" id="general-info-password" name="password" placeholder='*******'>
                             <div class="form-display-btn">
                                 <input type="checkbox" id="general-info-display-password">
                                 <label for="general-info-display-password">Показать пароль</label>
                             </div>
                         </div>
                         <div class="form-password">
-                            <label for="general-info-repeat-password">Повторите пароль*</label>
-                            <input type="password" id="general-info-repeat-password" placeholder='*******' required>
+                            <label for="general-info-repeat-password">Повторите пароль</label>
+                            <input type="password" id="general-info-repeat-password" name="password_confirmation" placeholder='*******'>
                             <div class="form-display-btn">
                                 <input type="checkbox" id="general-info-display-repeat-password">
                                 <label for="general-info-display-repeat-password">Показать пароль</label>
@@ -1090,22 +1091,16 @@
                         </div>
                         <div class="form-input">
                             <label for="general-info-name">Ваше имя</label>
-                            <input type="text" id="general-info-name" placeholder='Иван Иванов' value="{{ $client->name ?? '' }}">
+                            <input type="text" id="general-info-name" name="name" placeholder='Иван Иванов' value="{{ $client->name ?? '' }}">
                         </div>
                         <div class="modal__btns">
-                            <button type="button" class="btn btn--primary">
+                            <button type="submit" class="btn btn--primary">
                                 <svg aria-hidden="true">
-                                    <use xlink:href="images/sprite.svg#save"></use>
+                                    <use xlink:href="{{ url('images/sprite.svg#save') }}"></use>
                                 </svg>
                                 <span>Сохранить</span>
                             </button>
                         </div>
-                        <span class="success-message">
-                            <svg aria-hidden="true">
-                                <use xlink:href="images/sprite.svg#check-circle"></use>
-                            </svg>
-                            <span>Изменения успешно сохранены</span>
-                        </span>
                     </form>
                 </div>
             </div>

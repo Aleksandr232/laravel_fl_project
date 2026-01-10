@@ -53,6 +53,7 @@ Route::get('product/{slug}', [FrontendController::class, 'product'])->name('fron
 
 Route::group(['prefix' => 'profile', 'middleware' => ['auth:client']], function () {
     Route::get('', [ProfileController::class, 'index'])->name('frontend.profile.index');
+    Route::post('/update', [ProfileController::class, 'update'])->name('frontend.profile.update');
 });
 
 // Ajax маршруты для авторизации
