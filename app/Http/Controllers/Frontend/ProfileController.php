@@ -15,6 +15,8 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Encryption\MissingAppKeyException;
 
 class ProfileController extends Controller
 {
@@ -95,7 +97,15 @@ class ProfileController extends Controller
             // Отправляем письмо, если были изменены пароль или email
             if (!empty($changedFields) && (in_array('password', $changedFields) || in_array('email', $changedFields))) {
                 try {
-                    Mail::to($client->email)->send(new PasswordChangedMail($client, $changedFields));
+                    // Проверяем, что APP_KEY установлен перед отправкой письма
+                    if (config('app.key')) {
+                        Mail::to($client->email)->send(new PasswordChangedMail($client, $changedFields));
+                    } else {
+                        \Log::warning('APP_KEY не установлен. Письмо не отправлено.');
+                    }
+                } catch (\Illuminate\Encryption\MissingAppKeyException $e) {
+                    // Логируем ошибку, но не прерываем процесс обновления
+                    \Log::error('Ошибка: APP_KEY не установлен. Письмо не отправлено.');
                 } catch (\Exception $e) {
                     // Логируем ошибку отправки письма, но не прерываем процесс обновления
                     \Log::error('Ошибка отправки письма об изменении пароля: ' . $e->getMessage());
