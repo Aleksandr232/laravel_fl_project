@@ -199,27 +199,57 @@ class ProfileController extends Controller
                             $mailHost = config('mail.mailers.smtp.host');
                             $mailPort = config('mail.mailers.smtp.port');
                             $mailEncryption = config('mail.mailers.smtp.encryption');
+                            $mailUsername = config('mail.mailers.smtp.username');
+                            $mailPassword = config('mail.mailers.smtp.password');
                             
                             Log::error('❌ ПРОБЛЕМА С УЧЕТНЫМИ ДАННЫМИ SMTP');
                             Log::error('Текущие настройки в .env файле:');
-                            Log::error('  - MAIL_USERNAME: ' . (config('mail.mailers.smtp.username') ?: 'НЕ УСТАНОВЛЕН'));
-                            Log::error('  - MAIL_PASSWORD: ' . (config('mail.mailers.smtp.password') ? 'УСТАНОВЛЕН' : 'НЕ УСТАНОВЛЕН'));
+                            Log::error('  - MAIL_USERNAME: ' . ($mailUsername ?: 'НЕ УСТАНОВЛЕН'));
+                            Log::error('  - MAIL_PASSWORD: ' . ($mailPassword ? 'УСТАНОВЛЕН (длина: ' . strlen($mailPassword) . ' символов)' : 'НЕ УСТАНОВЛЕН'));
                             Log::error('  - MAIL_HOST: ' . ($mailHost ?: 'НЕ УСТАНОВЛЕН'));
                             Log::error('  - MAIL_PORT: ' . ($mailPort ?: 'НЕ УСТАНОВЛЕН'));
                             Log::error('  - MAIL_ENCRYPTION: ' . ($mailEncryption ?: 'НЕ УСТАНОВЛЕН'));
+                            
+                            // Проверка на специальные символы в пароле
+                            if ($mailPassword && preg_match('/[!@#$%^&*()_+\-=\[\]{};\'\\:"|,.<>\/?]/', $mailPassword)) {
+                                Log::error('');
+                                Log::error('⚠️ ОБНАРУЖЕНЫ СПЕЦИАЛЬНЫЕ СИМВОЛЫ В ПАРОЛЕ!');
+                                Log::error('Пароль содержит специальные символы, которые могут вызывать проблемы.');
+                                Log::error('Рекомендуется: изменить пароль в панели SpaceWeb на пароль БЕЗ специальных символов');
+                            }
+                            
                             Log::error('');
                             Log::error('⚠️ ВАЖНО: Для SpaceWeb правильные настройки:');
                             Log::error('  - SSL: порт 465 с encryption=ssl');
                             Log::error('  - TLS: порт 2525 с encryption=tls');
                             Log::error('  - Без шифрования: порт 25 с encryption=null');
                             Log::error('');
-                            Log::error('РЕШЕНИЕ:');
-                            Log::error('1. Проверьте правильность пароля в .env (без пробелов в начале/конце и кавычек)');
-                            Log::error('2. Убедитесь, что комбинация порта и шифрования правильная:');
-                            Log::error('   - Для SSL: MAIL_PORT=465 и MAIL_ENCRYPTION=ssl');
-                            Log::error('   - Для TLS: MAIL_PORT=2525 и MAIL_ENCRYPTION=tls');
-                            Log::error('3. Проверьте, что логин совпадает с email адресом (info@astc.org.ru)');
-                            Log::error('4. После исправления выполните: php artisan config:clear');
+                            Log::error('РЕШЕНИЕ (попробуйте в таком порядке):');
+                            Log::error('');
+                            Log::error('ШАГ 1: Проверьте логин и пароль');
+                            Log::error('  - Попробуйте войти через https://webmail.sweb.ru');
+                            Log::error('  - Если вход не работает - проблема в учетных данных');
+                            Log::error('');
+                            Log::error('ШАГ 2: Попробуйте TLS вместо SSL (РЕКОМЕНДУЕТСЯ ПЕРВЫМ)');
+                            Log::error('  В .env файле установите:');
+                            Log::error('  MAIL_PORT=2525');
+                            Log::error('  MAIL_ENCRYPTION=tls');
+                            Log::error('  Затем: php artisan config:clear');
+                            Log::error('');
+                            Log::error('ШАГ 3: Если TLS не работает, попробуйте SSL');
+                            Log::error('  В .env файле установите:');
+                            Log::error('  MAIL_PORT=465');
+                            Log::error('  MAIL_ENCRYPTION=ssl');
+                            Log::error('  Затем: php artisan config:clear');
+                            Log::error('');
+                            Log::error('ШАГ 4: Проверьте формат пароля в .env');
+                            Log::error('  Пароль должен быть БЕЗ кавычек: MAIL_PASSWORD=ENBSD!27XUqwe');
+                            Log::error('  НЕ используйте: MAIL_PASSWORD="ENBSD!27XUqwe"');
+                            Log::error('  Проверьте, нет ли пробелов в начале или конце');
+                            Log::error('');
+                            Log::error('ШАГ 5: Если пароль содержит специальные символы (!, @, #, и т.д.)');
+                            Log::error('  Попробуйте изменить пароль в панели SpaceWeb на пароль БЕЗ специальных символов');
+                            Log::error('  Или используйте только буквы, цифры и дефис/подчеркивание');
                         } elseif (str_contains($errorMessage, 'Connection') || str_contains($errorMessage, 'timeout')) {
                             Log::error('❌ ПРОБЛЕМА С ПОДКЛЮЧЕНИЕМ К SMTP СЕРВЕРУ');
                             Log::error('Текущие настройки:');
