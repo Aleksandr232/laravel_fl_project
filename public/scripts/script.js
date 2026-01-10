@@ -277,21 +277,49 @@ window.addEventListener('DOMContentLoaded', () => {
         const target = e.currentTarget;
         if (!!currentModalOpen) {
             const prevModal = document.querySelector(`[data-modal-name=${currentModalOpen}]`);
-            setTimeout(() => {
-                prevModal.classList.remove('is-open');
-            }, 200);
+            if (prevModal) {
+                setTimeout(() => {
+                    prevModal.classList.remove('is-open');
+                    prevModal.dataset.justOpened = 'false';
+                }, 200);
+            }
         }
         const modalTarget = document.querySelector(`[data-modal-name=${target.dataset.modalTrigger}]`);
-        modalTarget.classList.add('is-open');
-        document.body.classList.add('no-scroll');
-        currentModalOpen = target.dataset.modalTrigger;
+        if (modalTarget) {
+            // Отменяем любые активные таймеры закрытия для этого модального окна
+            const form = modalTarget.querySelector('#general-info-form');
+            if (form && form.dataset.closeTimeout) {
+                clearTimeout(parseInt(form.dataset.closeTimeout));
+                form.dataset.closeTimeout = '';
+            }
+            
+            modalTarget.classList.add('is-open');
+            document.body.classList.add('no-scroll');
+            currentModalOpen = target.dataset.modalTrigger;
+            
+            // Устанавливаем флаг, что модальное окно только что открыто
+            modalTarget.dataset.justOpened = 'true';
+            setTimeout(() => {
+                if (modalTarget) {
+                    modalTarget.dataset.justOpened = 'false';
+                }
+            }, 300);
+        }
     }
 
     const closeModal = (modal) => {
-        if (modal.classList.contains('is-open')) {
+        if (modal && modal.classList.contains('is-open')) {
             modal.classList.remove('is-open');
             document.body.classList.remove('no-scroll');
             currentModalOpen = "";
+            modal.dataset.justOpened = 'false';
+            
+            // Отменяем любые активные таймеры закрытия
+            const form = modal.querySelector('#general-info-form');
+            if (form && form.dataset.closeTimeout) {
+                clearTimeout(parseInt(form.dataset.closeTimeout));
+                form.dataset.closeTimeout = '';
+            }
         }
     }
 
@@ -610,8 +638,16 @@ window.addEventListener('DOMContentLoaded', () => {
             closeCatalog();
         }
 
-        if (!target.closest('.js-modal-dialog') && target.closest('.js-modal')) {
-            closeModal(target.closest('.js-modal'));
+        // Закрываем модальное окно при клике вне его области
+        // Но не закрываем, если клик был на кнопке открытия или если модальное окно только что открыто
+        const clickedModal = target.closest('.js-modal');
+        const clickedModalTrigger = target.closest('[data-modal-trigger]');
+        
+        if (!target.closest('.js-modal-dialog') && clickedModal && !clickedModalTrigger) {
+            // Проверяем, не было ли модальное окно только что открыто (предотвращаем немедленное закрытие)
+            if (!clickedModal.dataset.justOpened || clickedModal.dataset.justOpened === 'false') {
+                closeModal(clickedModal);
+            }
         }
     });
     //END Click outside    

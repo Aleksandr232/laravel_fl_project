@@ -276,8 +276,50 @@ document.addEventListener('DOMContentLoaded', function() {
     // 5. Обновление профиля
     const generalInfoForm = document.getElementById('general-info-form');
     if (generalInfoForm) {
+        // Очищаем результат и отменяем timeout при открытии модального окна
+        const generalInfoModal = document.querySelector('.js-modal[data-modal-name="general-info"]');
+        if (generalInfoModal) {
+            // Используем MutationObserver для отслеживания открытия модального окна
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                        if (generalInfoModal.classList.contains('is-open')) {
+                            // Модальное окно открыто - очищаем предыдущие состояния
+                            // Отменяем timeout закрытия, если он был установлен
+                            if (generalInfoForm.dataset.closeTimeout) {
+                                clearTimeout(parseInt(generalInfoForm.dataset.closeTimeout));
+                                generalInfoForm.dataset.closeTimeout = '';
+                            }
+                            
+                            // Очищаем предыдущий результат
+                            const resultDiv = generalInfoForm.querySelector('.result');
+                            if (resultDiv) {
+                                resultDiv.innerHTML = '';
+                            }
+                            // Убеждаемся, что форма не в состоянии отправки
+                            generalInfoForm.dataset.submitting = 'false';
+                        }
+                    }
+                });
+            });
+            
+            // Начинаем наблюдение за изменениями класса
+            observer.observe(generalInfoModal, {
+                attributes: true,
+                attributeFilter: ['class']
+            });
+        }
+
         generalInfoForm.addEventListener('submit', async function(e) {
             e.preventDefault();
+            e.stopPropagation(); // Предотвращаем всплытие события
+            
+            // Проверяем, не отправляется ли форма уже
+            if (this.dataset.submitting === 'true') {
+                return;
+            }
+            this.dataset.submitting = 'true';
+
             const resultDiv = this.querySelector('.result');
             if(resultDiv) resultDiv.innerHTML = 'Загрузка...';
 
@@ -290,18 +332,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Проверяем, что если пароль заполнен, то и подтверждение тоже
             if (password && password.trim() && (!passwordConfirmation || !passwordConfirmation.trim())) {
+                this.dataset.submitting = 'false';
                 showResult(this, 'error', 'Подтвердите пароль');
                 return;
             }
 
             // Проверяем совпадение паролей
             if (password && password.trim() && password !== passwordConfirmation) {
+                this.dataset.submitting = 'false';
                 showResult(this, 'error', 'Пароли не совпадают');
                 return;
             }
 
             // Минимальная длина пароля
             if (password && password.trim() && password.length < 6) {
+                this.dataset.submitting = 'false';
                 showResult(this, 'error', 'Пароль должен содержать минимум 6 символов');
                 return;
             }
@@ -313,6 +358,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             const result = await sendRequest('/profile/update', formData);
+            
+            // Сбрасываем флаг отправки после получения ответа
+            this.dataset.submitting = 'false';
 
             if (result.ok) {
                 showResult(this, 'success', result.data.message || 'Данные успешно обновлены');
@@ -405,16 +453,31 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
 
                 // Закрываем модальное окно через короткую задержку (чтобы пользователь видел сообщение об успехе)
-                setTimeout(() => {
+                const closeTimeoutId = setTimeout(() => {
                     const generalInfoModal = document.querySelector('.js-modal[data-modal-name="general-info"]');
-                    if (generalInfoModal) {
-                        generalInfoModal.classList.remove('is-open');
+                    if (generalInfoModal && generalInfoModal.classList.contains('is-open')) {
+                        // Используем стандартный механизм закрытия через кнопку закрытия,
+                        // чтобы правильно обновить все переменные и состояния
+                        const closeBtn = generalInfoModal.querySelector('.js-modal-close');
+                        if (closeBtn) {
+                            // Используем простой клик вместо dispatchEvent для надежности
+                            closeBtn.click();
+                        } else {
+                            // Если кнопка не найдена, закрываем вручную
+                            generalInfoModal.classList.remove('is-open');
+                            document.body.classList.remove('no-scroll');
+                        }
                     }
-                    document.body.classList.remove('no-scroll');
                     
-                    // Очищаем сообщение результата
-                    if(resultDiv) resultDiv.innerHTML = '';
+                    // Очищаем сообщение результата и сбрасываем флаг после закрытия
+                    setTimeout(() => {
+                        if(resultDiv) resultDiv.innerHTML = '';
+                        generalInfoForm.dataset.closeTimeout = '';
+                    }, 300);
                 }, 1500);
+                
+                // Сохраняем ID timeout для возможной отмены
+                generalInfoForm.dataset.closeTimeout = closeTimeoutId;
 
             } else {
                 const msg = result.data.errors || result.data.message;
