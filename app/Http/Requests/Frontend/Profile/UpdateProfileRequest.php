@@ -17,6 +17,7 @@ class UpdateProfileRequest extends FormRequest
     {
         $rules = [
             'name' => 'nullable|string|max:255',
+            'phone' => 'nullable|string|max:100',
         ];
 
         // Если передается пароль, добавляем правила валидации

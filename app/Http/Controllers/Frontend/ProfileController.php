@@ -79,11 +79,18 @@ class ProfileController extends Controller
             $client = Auth::guard('client')->user();
             $changedFields = [];
             $oldEmail = $client->email;
+            $oldPhone = $client->phone;
 
             // Обновляем имя, если оно передано
-            if ($request->filled('name')) {
+            if ($request->filled('name') && $request->name !== $client->name) {
                 $client->name = $request->name;
                 $changedFields[] = 'name';
+            }
+
+            // Обновляем телефон, если он передан и отличается от текущего
+            if ($request->filled('phone') && $request->phone !== $client->phone) {
+                $client->phone = $request->phone;
+                $changedFields[] = 'phone';
             }
 
             // Обновляем пароль, если он передан и не пустой
@@ -92,23 +99,35 @@ class ProfileController extends Controller
                 $changedFields[] = 'password';
             }
 
-            $client->save();
+            // Сохраняем изменения только если что-то изменилось
+            if (!empty($changedFields)) {
+                $client->save();
+            }
 
-            // Отправляем письмо, если были изменены пароль или email
-            if (!empty($changedFields) && (in_array('password', $changedFields) || in_array('email', $changedFields))) {
-                try {
-                    // Проверяем, что APP_KEY установлен перед отправкой письма
-                    if (config('app.key')) {
-                        Mail::to($client->email)->send(new PasswordChangedMail($client, $changedFields));
-                    } else {
-                        \Log::warning('APP_KEY не установлен. Письмо не отправлено.');
+            // Отправляем письмо, если были изменены пароль, email или другие важные данные
+            if (!empty($changedFields)) {
+                // Отправляем письмо при изменении пароля или других критичных данных
+                $shouldSendEmail = in_array('password', $changedFields) || 
+                                  in_array('email', $changedFields) || 
+                                  in_array('phone', $changedFields);
+                
+                if ($shouldSendEmail) {
+                    try {
+                        // Проверяем, что APP_KEY установлен перед отправкой письма
+                        if (config('app.key')) {
+                            Mail::to($client->email)->send(new PasswordChangedMail($client, $changedFields));
+                            Log::info('Письмо об изменении данных успешно отправлено пользователю: ' . $client->email);
+                        } else {
+                            Log::warning('APP_KEY не установлен. Письмо не отправлено пользователю: ' . $client->email);
+                        }
+                    } catch (\Illuminate\Encryption\MissingAppKeyException $e) {
+                        // Логируем ошибку, но не прерываем процесс обновления
+                        Log::error('Ошибка: APP_KEY не установлен. Письмо не отправлено пользователю: ' . $client->email);
+                    } catch (\Exception $e) {
+                        // Логируем ошибку отправки письма, но не прерываем процесс обновления
+                        Log::error('Ошибка отправки письма об изменении пароля для ' . $client->email . ': ' . $e->getMessage());
+                        Log::error('Stack trace: ' . $e->getTraceAsString());
                     }
-                } catch (\Illuminate\Encryption\MissingAppKeyException $e) {
-                    // Логируем ошибку, но не прерываем процесс обновления
-                    \Log::error('Ошибка: APP_KEY не установлен. Письмо не отправлено.');
-                } catch (\Exception $e) {
-                    // Логируем ошибку отправки письма, но не прерываем процесс обновления
-                    \Log::error('Ошибка отправки письма об изменении пароля: ' . $e->getMessage());
                 }
             }
 

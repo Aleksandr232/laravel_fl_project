@@ -135,6 +135,11 @@
                         <span class="field-label">Email:</span> был изменен на {{ $client->email }}
                     </li>
                     @endif
+                    @if(in_array('phone', $changedFields))
+                    <li>
+                        <span class="field-label">Номер телефона:</span> был изменен на {{ $client->phone }}
+                    </li>
+                    @endif
                     @if(in_array('name', $changedFields))
                     <li>
                         <span class="field-label">Имя:</span> было изменено на {{ $client->name }}

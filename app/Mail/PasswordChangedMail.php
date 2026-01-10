@@ -39,6 +39,8 @@ class PasswordChangedMail extends Mailable
             $subject = 'Изменение пароля в личном кабинете';
         } elseif (in_array('email', $this->changedFields)) {
             $subject = 'Изменение email в личном кабинете';
+        } elseif (in_array('phone', $this->changedFields)) {
+            $subject = 'Изменение номера телефона в личном кабинете';
         }
 
         return $this->subject($subject)

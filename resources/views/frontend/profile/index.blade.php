@@ -1067,7 +1067,7 @@
                         <div class="result"></div>
                         <div class="form-input">
                             <label for="general-info-phone">Номер телефона*</label>
-                            <input type="tel" id="general-info-phone" name="phone" placeholder='+7 900 000-00-00' value="{{ $client->phone ?? '' }}" readonly>
+                            <input type="tel" id="general-info-phone" name="phone" placeholder='+7 900 000-00-00' value="{{ $client->phone ?? '' }}">
                         </div>
                         <div class="form-input">
                             <label for="general-info-email">Email*</label>
