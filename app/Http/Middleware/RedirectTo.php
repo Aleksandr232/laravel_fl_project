@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\Redirect;
+use Illuminate\Encryption\MissingAppKeyException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
@@ -28,6 +29,12 @@ class RedirectTo
     public function handle(Request $request, Closure $next): Response
     {
         try {
+            // Проверяем, что APP_KEY установлен (для работы с сессиями/шифрованием)
+            if (empty(config('app.key'))) {
+                // Если ключ не установлен, пропускаем проверку редиректов
+                return $next($request);
+            }
+
             // Проверяем, что таблица существует (с обработкой ошибок подключения к БД)
             try {
                 if (!Schema::hasTable('redirect')) {
@@ -54,6 +61,10 @@ class RedirectTo
                 Log::warning('RedirectTo middleware: ошибка при проверке редиректа: ' . $e->getMessage());
                 return $next($request);
             }
+        } catch (\Illuminate\Encryption\MissingAppKeyException $e) {
+            // Если ключ шифрования не установлен
+            Log::warning('RedirectTo middleware: APP_KEY не установлен');
+            return $next($request);
         } catch (\Exception $e) {
             // В случае любой ошибки просто продолжаем выполнение запроса
             Log::warning('RedirectTo middleware: общая ошибка: ' . $e->getMessage());
