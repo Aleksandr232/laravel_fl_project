@@ -21,7 +21,7 @@ class Company extends Model
     /**
      * @return BelongsTo
      */
-    public function product(): BelongsTo
+    public function client(): BelongsTo
     {
         return $this->belongsTo(Clients::class, 'client_id', 'id');
     }

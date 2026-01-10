@@ -117,22 +117,39 @@
                             </div>
                             <div class="profile__point">
                                 <dt class="profile__point-title">ИНН</dt>
-                                <dd class="profile__point-text">1232313423423</dd>
+                                <dd class="profile__point-text">{{ $company->inn ?? '—' }}</dd>
                             </div>
                         </dl>
                         <dl class="profile__list">
+                            @if($company)
                             <div class="profile__point">
                                 <dt class="profile__point-title">Контактное лицо</dt>
-                                <dd class="profile__point-text">Петр Петров</dd>
+                                <dd class="profile__point-text">{{ $company->contact_person ?? '—' }}</dd>
+                            </div>
+                            @if($company->phone)
+                            <div class="profile__point">
+                                <dt class="profile__point-title">Номер телефона</dt>
+                                <dd class="profile__point-text">{{ $company->phone }}</dd>
+                            </div>
+                            @endif
+                            <div class="profile__point">
+                                <dt class="profile__point-title">Электронная почта</dt>
+                                <dd class="profile__point-text">{{ $company->email ?? '—' }}</dd>
+                            </div>
+                            @else
+                            <div class="profile__point">
+                                <dt class="profile__point-title">Контактное лицо</dt>
+                                <dd class="profile__point-text">—</dd>
                             </div>
                             <div class="profile__point">
                                 <dt class="profile__point-title">Номер телефона</dt>
-                                <dd class="profile__point-text">+7 900 100-00-00</dd>
+                                <dd class="profile__point-text">—</dd>
                             </div>
                             <div class="profile__point">
                                 <dt class="profile__point-title">Электронная почта</dt>
-                                <dd class="profile__point-text">customer@mail.ru</dd>
+                                <dd class="profile__point-text">—</dd>
                             </div>
+                            @endif
                         </dl>
                     </div>
                 </section>
@@ -1126,34 +1143,28 @@
                         </div>
                         <div class="form-input">
                             <label for="company-info-inn">ИНН*</label>
-                            <input type="number" id="company-info-inn" placeholder='1122312321428234' required>
+                            <input type="text" id="company-info-inn" name="inn" placeholder='1122312321428234' value="{{ $company->inn ?? '' }}" required>
                         </div>
                         <div class="form-input">
                             <label for="company-info-name">Контактное лицо*</label>
-                            <input type="text" id="company-info-name" placeholder='Петр Петров' required>
+                            <input type="text" id="company-info-name" name="contact_person" placeholder='Петр Петров' value="{{ $company->contact_person ?? '' }}" required>
                         </div>
                         <div class="form-input">
-                            <label for="company-info-phone">Номер телефона*</label>
-                            <input type="tel" id="company-info-phone" placeholder='+7 900 000-00-00' required>
+                            <label for="company-info-phone">Номер телефона</label>
+                            <input type="tel" id="company-info-phone" name="phone" placeholder='+7 900 000-00-00' value="{{ $company->phone ?? '' }}">
                         </div>
                         <div class="form-input">
                             <label for="company-info-email">Электронная почта*</label>
-                            <input type="email" id="company-info-email" placeholder='customer@gmail.com' required>
+                            <input type="email" id="company-info-email" name="email" placeholder='customer@gmail.com' value="{{ $company->email ?? '' }}" required>
                         </div>
                         <div class="modal__btns">
-                            <button type="button" class="btn btn--primary">
+                            <button type="submit" class="btn btn--primary">
                                 <svg aria-hidden="true">
                                     <use xlink:href="images/sprite.svg#save"></use>
                                 </svg>
                                 <span>Сохранить</span>
                             </button>
                         </div>
-                        <span class="success-message">
-                            <svg aria-hidden="true">
-                                <use xlink:href="images/sprite.svg#check-circle"></use>
-                            </svg>
-                            <span>Изменения успешно сохранены</span>
-                        </span>
                     </form>
                 </div>
             </div>

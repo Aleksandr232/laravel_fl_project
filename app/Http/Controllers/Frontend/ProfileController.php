@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Frontend\Profile\UpdateProfileRequest;
+use App\Http\Requests\Frontend\Profile\UpdateCompanyRequest;
 use App\Helpers\MenuHelper;
 use App\Mail\PasswordChangedMail;
 use App\Models\Catalog;
+use App\Models\Company;
 use App\Models\Feedback;
 use App\Models\Seo;
 use Illuminate\Http\JsonResponse;
@@ -41,6 +43,7 @@ class ProfileController extends Controller
         $catalogs = Catalog::orderBy('name')->where('parent_id', 0)->get();
         $options = Feedback::getPlatformList();
         $client = Auth::guard('client')->user();
+        $company = $client->company; // Получаем компанию клиента
 
         return view('frontend.profile.index', compact(
                 'meta_description',
@@ -53,7 +56,8 @@ class ProfileController extends Controller
                 'h1',
                 'seo_url_canonical',
                 'title',
-                'client'
+                'client',
+                'company'
             )
         )->with('title', $title);
     }
@@ -292,6 +296,115 @@ class ProfileController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Произошла ошибка при обновлении данных: ' . $e->getMessage(),
+            ], 422);
+        }
+    }
+
+    /**
+     * Обновление данных компании пользователя
+     *
+     * @param UpdateCompanyRequest $request
+     * @return JsonResponse
+     */
+    public function updateCompany(UpdateCompanyRequest $request): JsonResponse
+    {
+        try {
+            $client = Auth::guard('client')->user();
+            $changedFields = [];
+
+            Log::info('Начало обновления данных компании', [
+                'user_id' => $client->id,
+                'request_data' => $request->all()
+            ]);
+
+            // Получаем или создаем компанию клиента
+            $company = $client->company;
+            if (!$company) {
+                $company = new Company();
+                $company->client_id = $client->id;
+                Log::info('Создана новая запись компании для клиента', ['user_id' => $client->id]);
+            }
+
+            $oldName = $company->name;
+            $oldInn = $company->inn;
+            $oldContactPerson = $company->contact_person;
+            $oldPhone = $company->phone;
+            $oldEmail = $company->email;
+
+            // Обновляем название компании
+            if ($request->has('name')) {
+                $newName = trim($request->input('name', ''));
+                if ($newName !== ($oldName ?? '')) {
+                    $company->name = $newName;
+                    $changedFields[] = 'name';
+                    Log::info('Название компании изменено', ['old' => $oldName, 'new' => $newName]);
+                }
+            }
+
+            // Обновляем ИНН
+            if ($request->has('inn')) {
+                $newInn = trim($request->input('inn', ''));
+                if ($newInn !== ($oldInn ?? '')) {
+                    $company->inn = $newInn;
+                    $changedFields[] = 'inn';
+                    Log::info('ИНН изменен', ['old' => $oldInn, 'new' => $newInn]);
+                }
+            }
+
+            // Обновляем контактное лицо
+            if ($request->has('contact_person')) {
+                $newContactPerson = trim($request->input('contact_person', ''));
+                if ($newContactPerson !== ($oldContactPerson ?? '')) {
+                    $company->contact_person = $newContactPerson;
+                    $changedFields[] = 'contact_person';
+                    Log::info('Контактное лицо изменено', ['old' => $oldContactPerson, 'new' => $newContactPerson]);
+                }
+            }
+
+            // Обновляем телефон компании
+            if ($request->has('phone')) {
+                $newPhone = trim($request->input('phone', ''));
+                if ($newPhone !== ($oldPhone ?? '')) {
+                    $company->phone = $newPhone;
+                    $changedFields[] = 'phone';
+                    Log::info('Телефон компании изменен', ['old' => $oldPhone, 'new' => $newPhone]);
+                }
+            }
+
+            // Обновляем email компании
+            if ($request->has('email')) {
+                $newEmail = trim($request->input('email', ''));
+                if ($newEmail !== ($oldEmail ?? '')) {
+                    $company->email = $newEmail;
+                    $changedFields[] = 'email';
+                    Log::info('Email компании изменен', ['old' => $oldEmail, 'new' => $newEmail]);
+                }
+            }
+
+            Log::info('Измененные поля компании', ['changedFields' => $changedFields]);
+
+            // Сохраняем изменения только если что-то изменилось
+            if (!empty($changedFields)) {
+                $company->save();
+                Log::info('Данные компании сохранены');
+            } else {
+                Log::info('Нет изменений для сохранения компании');
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Данные компании успешно обновлены',
+                'changed_fields' => $changedFields,
+                'company' => $company
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Ошибка в методе updateCompany: ' . $e->getMessage());
+            Log::error('Stack trace: ' . $e->getTraceAsString());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Произошла ошибка при обновлении данных компании: ' . $e->getMessage(),
             ], 422);
         }
     }

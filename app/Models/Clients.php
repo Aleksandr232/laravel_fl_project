@@ -43,4 +43,14 @@ class Clients extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    /**
+     * Связь с компанией
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function company(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(Company::class, 'client_id', 'id');
+    }
 }

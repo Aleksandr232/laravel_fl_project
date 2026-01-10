@@ -485,4 +485,209 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    // 6. Обновление данных компании
+    const companyInfoForm = document.getElementById('company-info-form');
+    if (companyInfoForm) {
+        // Очищаем результат и отменяем timeout при открытии модального окна компании
+        const companyInfoModal = document.querySelector('.js-modal[data-modal-name="company-info"]');
+        if (companyInfoModal) {
+            // Используем MutationObserver для отслеживания открытия модального окна
+            const observerCompany = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                        if (companyInfoModal.classList.contains('is-open')) {
+                            // Модальное окно открыто - очищаем предыдущие состояния
+                            // Отменяем timeout закрытия, если он был установлен
+                            if (companyInfoForm.dataset.closeTimeout) {
+                                clearTimeout(parseInt(companyInfoForm.dataset.closeTimeout));
+                                companyInfoForm.dataset.closeTimeout = '';
+                            }
+                            
+                            // Очищаем предыдущий результат
+                            const resultDiv = companyInfoForm.querySelector('.result');
+                            if (resultDiv) {
+                                resultDiv.innerHTML = '';
+                            }
+                            // Убеждаемся, что форма не в состоянии отправки
+                            companyInfoForm.dataset.submitting = 'false';
+                        }
+                    }
+                });
+            });
+            
+            // Начинаем наблюдение за изменениями класса
+            observerCompany.observe(companyInfoModal, {
+                attributes: true,
+                attributeFilter: ['class']
+            });
+        }
+
+        companyInfoForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            e.stopPropagation(); // Предотвращаем всплытие события
+            
+            // Проверяем, не отправляется ли форма уже
+            if (this.dataset.submitting === 'true') {
+                return;
+            }
+            this.dataset.submitting = 'true';
+
+            const resultDiv = this.querySelector('.result');
+            if(resultDiv) resultDiv.innerHTML = 'Загрузка...';
+
+            const formData = new FormData(this);
+
+            const result = await sendRequest('/profile/update-company', formData);
+            
+            // Сбрасываем флаг отправки после получения ответа
+            this.dataset.submitting = 'false';
+
+            if (result.ok) {
+                showResult(this, 'success', result.data.message || 'Данные компании успешно обновлены');
+                
+                // Обновляем данные на странице без перезагрузки
+                const changedFields = result.data.changed_fields || [];
+                const company = result.data.company;
+                
+                if (company) {
+                    // Обновляем название компании
+                    if (changedFields.includes('name')) {
+                        const companyPoints = document.querySelectorAll('.profile__list .profile__point');
+                        companyPoints.forEach(point => {
+                            const title = point.querySelector('.profile__point-title');
+                            if (title && title.textContent.trim() === 'Компания') {
+                                const textElement = point.querySelector('.profile__point-text');
+                                if (textElement) {
+                                    textElement.textContent = company.name || '—';
+                                }
+                            }
+                        });
+                    }
+
+                    // Обновляем ИНН
+                    if (changedFields.includes('inn')) {
+                        const companyPoints = document.querySelectorAll('.profile__list .profile__point');
+                        companyPoints.forEach(point => {
+                            const title = point.querySelector('.profile__point-title');
+                            if (title && title.textContent.trim() === 'ИНН') {
+                                const textElement = point.querySelector('.profile__point-text');
+                                if (textElement) {
+                                    textElement.textContent = company.inn || '—';
+                                }
+                            }
+                        });
+                    }
+
+                    // Обновляем контактное лицо
+                    if (changedFields.includes('contact_person')) {
+                        const companyPoints = document.querySelectorAll('.profile__list .profile__point');
+                        companyPoints.forEach(point => {
+                            const title = point.querySelector('.profile__point-title');
+                            if (title && title.textContent.trim() === 'Контактное лицо') {
+                                const textElement = point.querySelector('.profile__point-text');
+                                if (textElement) {
+                                    textElement.textContent = company.contact_person || '—';
+                                }
+                            }
+                        });
+                    }
+
+                    // Обновляем телефон компании
+                    if (changedFields.includes('phone')) {
+                        const companyPoints = document.querySelectorAll('.profile__list .profile__point');
+                        let phonePoint = null;
+                        companyPoints.forEach(point => {
+                            const title = point.querySelector('.profile__point-title');
+                            if (title && title.textContent.trim() === 'Номер телефона' && 
+                                point.closest('.profile__list').querySelector('.profile__point-title')?.textContent.trim() !== 'Номер телефона' ||
+                                !point.previousElementSibling || 
+                                point.previousElementSibling.querySelector('.profile__point-title')?.textContent.trim() === 'Контактное лицо') {
+                                phonePoint = point;
+                            }
+                        });
+                        
+                        if (phonePoint) {
+                            const textElement = phonePoint.querySelector('.profile__point-text');
+                            if (textElement) {
+                                if (company.phone) {
+                                    textElement.textContent = company.phone;
+                                } else {
+                                    phonePoint.remove();
+                                }
+                            }
+                        } else if (company.phone) {
+                            // Если блока с телефоном компании нет, создаем его
+                            const contactPersonPoints = document.querySelectorAll('.profile__list .profile__point');
+                            let contactPersonPoint = null;
+                            contactPersonPoints.forEach(point => {
+                                const title = point.querySelector('.profile__point-title');
+                                if (title && title.textContent.trim() === 'Контактное лицо') {
+                                    const list = point.closest('.profile__list');
+                                    if (list && !list.querySelector('.profile__point-title:contains("Номер телефона")')) {
+                                        contactPersonPoint = point;
+                                    }
+                                }
+                            });
+                            
+                            if (contactPersonPoint && contactPersonPoint.parentNode) {
+                                const phoneDiv = document.createElement('div');
+                                phoneDiv.className = 'profile__point';
+                                phoneDiv.innerHTML = `
+                                    <dt class="profile__point-title">Номер телефона</dt>
+                                    <dd class="profile__point-text">${company.phone}</dd>
+                                `;
+                                contactPersonPoint.parentNode.insertBefore(phoneDiv, contactPersonPoint.nextSibling);
+                            }
+                        }
+                    }
+
+                    // Обновляем email компании
+                    if (changedFields.includes('email')) {
+                        const companyPoints = document.querySelectorAll('.profile__list .profile__point');
+                        companyPoints.forEach(point => {
+                            const title = point.querySelector('.profile__point-title');
+                            if (title && title.textContent.trim() === 'Электронная почта') {
+                                // Проверяем, что это email компании, а не клиента (email клиента находится в другом блоке)
+                                const list = point.closest('.profile__list');
+                                const hasCompanyName = list && list.querySelector('.profile__point-title')?.textContent.trim() === 'Компания';
+                                if (hasCompanyName || list?.querySelector('.profile__point-title')?.textContent.trim() === 'Контактное лицо') {
+                                    const textElement = point.querySelector('.profile__point-text');
+                                    if (textElement) {
+                                        textElement.textContent = company.email || '—';
+                                    }
+                                }
+                            }
+                        });
+                    }
+                }
+
+                // Закрываем модальное окно через короткую задержку
+                const closeTimeoutId = setTimeout(() => {
+                    if (companyInfoModal && companyInfoModal.classList.contains('is-open')) {
+                        const closeBtn = companyInfoModal.querySelector('.js-modal-close');
+                        if (closeBtn) {
+                            closeBtn.click();
+                        } else {
+                            companyInfoModal.classList.remove('is-open');
+                            document.body.classList.remove('no-scroll');
+                        }
+                    }
+                    
+                    // Очищаем сообщение результата и сбрасываем флаг после закрытия
+                    setTimeout(() => {
+                        if(resultDiv) resultDiv.innerHTML = '';
+                        companyInfoForm.dataset.closeTimeout = '';
+                    }, 300);
+                }, 1500);
+                
+                // Сохраняем ID timeout для возможной отмены
+                companyInfoForm.dataset.closeTimeout = closeTimeoutId;
+
+            } else {
+                const msg = result.data.errors || result.data.message;
+                showResult(this, 'error', msg);
+            }
+        });
+    }
 });
