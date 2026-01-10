@@ -42,13 +42,15 @@ return [
             'scheme' => env('MAIL_SCHEME'),
             'url' => env('MAIL_URL'),
             'host' => env('MAIL_HOST', 'smtp.spaceweb.ru'),
-            'port' => env('MAIL_PORT', 2525),
-            'encryption' => env('MAIL_ENCRYPTION', 'tls'),
+            // Для SpaceWeb: порт 465 для SSL, 2525 для TLS, 25 без шифрования
+            'port' => env('MAIL_PORT', 465),
+            // Для SSL используйте порт 465, для TLS - порт 2525
+            'encryption' => env('MAIL_ENCRYPTION', 'ssl'),
             'username' => env('MAIL_USERNAME'),
             'password' => env('MAIL_PASSWORD'),
             'timeout' => null,
             'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
-            'verify_peer' => false, // Отключаем проверку SSL для SpaceWeb, если нужно
+            'verify_peer' => false, // Отключаем проверку SSL для SpaceWeb
         ],
 
         'ses' => [

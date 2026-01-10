@@ -196,20 +196,30 @@ class ProfileController extends Controller
                         if (str_contains($errorMessage, 'Invalid login or password') || 
                             str_contains($errorMessage, '535') || 
                             str_contains($errorMessage, 'authentication')) {
+                            $mailHost = config('mail.mailers.smtp.host');
+                            $mailPort = config('mail.mailers.smtp.port');
+                            $mailEncryption = config('mail.mailers.smtp.encryption');
+                            
                             Log::error('❌ ПРОБЛЕМА С УЧЕТНЫМИ ДАННЫМИ SMTP');
-                            Log::error('Проверьте настройки в .env файле:');
+                            Log::error('Текущие настройки в .env файле:');
                             Log::error('  - MAIL_USERNAME: ' . (config('mail.mailers.smtp.username') ?: 'НЕ УСТАНОВЛЕН'));
                             Log::error('  - MAIL_PASSWORD: ' . (config('mail.mailers.smtp.password') ? 'УСТАНОВЛЕН' : 'НЕ УСТАНОВЛЕН'));
-                            Log::error('  - MAIL_HOST: ' . (config('mail.mailers.smtp.host') ?: 'НЕ УСТАНОВЛЕН'));
-                            Log::error('  - MAIL_PORT: ' . (config('mail.mailers.smtp.port') ?: 'НЕ УСТАНОВЛЕН'));
-                            Log::error('  - MAIL_ENCRYPTION: ' . (config('mail.mailers.smtp.encryption') ?: 'НЕ УСТАНОВЛЕН'));
+                            Log::error('  - MAIL_HOST: ' . ($mailHost ?: 'НЕ УСТАНОВЛЕН'));
+                            Log::error('  - MAIL_PORT: ' . ($mailPort ?: 'НЕ УСТАНОВЛЕН'));
+                            Log::error('  - MAIL_ENCRYPTION: ' . ($mailEncryption ?: 'НЕ УСТАНОВЛЕН'));
+                            Log::error('');
+                            Log::error('⚠️ ВАЖНО: Для SpaceWeb правильные настройки:');
+                            Log::error('  - SSL: порт 465 с encryption=ssl');
+                            Log::error('  - TLS: порт 2525 с encryption=tls');
+                            Log::error('  - Без шифрования: порт 25 с encryption=null');
                             Log::error('');
                             Log::error('РЕШЕНИЕ:');
-                            Log::error('1. Проверьте правильность пароля в .env (без пробелов в начале/конце)');
-                            Log::error('2. Для Gmail/Yandex используйте "Пароль приложения" вместо обычного пароля');
-                            Log::error('3. Убедитесь, что включена двухфакторная аутентификация');
-                            Log::error('4. Проверьте, что MAIL_HOST и MAIL_PORT правильные для вашего провайдера');
-                            Log::error('5. После исправления выполните: php artisan config:clear');
+                            Log::error('1. Проверьте правильность пароля в .env (без пробелов в начале/конце и кавычек)');
+                            Log::error('2. Убедитесь, что комбинация порта и шифрования правильная:');
+                            Log::error('   - Для SSL: MAIL_PORT=465 и MAIL_ENCRYPTION=ssl');
+                            Log::error('   - Для TLS: MAIL_PORT=2525 и MAIL_ENCRYPTION=tls');
+                            Log::error('3. Проверьте, что логин совпадает с email адресом (info@astc.org.ru)');
+                            Log::error('4. После исправления выполните: php artisan config:clear');
                         } elseif (str_contains($errorMessage, 'Connection') || str_contains($errorMessage, 'timeout')) {
                             Log::error('❌ ПРОБЛЕМА С ПОДКЛЮЧЕНИЕМ К SMTP СЕРВЕРУ');
                             Log::error('Текущие настройки:');
