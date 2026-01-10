@@ -179,27 +179,30 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Обработчики для показа/скрытия паролей
-    const displayPasswordCheckboxes = document.querySelectorAll('input[type="checkbox"][id*="display-password"]');
+    // Ищем все чекбоксы для показа пароля (они содержат "display" в ID)
+    const displayPasswordCheckboxes = document.querySelectorAll('input[type="checkbox"][id*="display"]');
+    
     displayPasswordCheckboxes.forEach(checkbox => {
         checkbox.addEventListener('change', function() {
-            // Для login-display-password ищем login-password
-            // Для general-info-display-password ищем general-info-password
+            // Сначала пытаемся найти поле по ID (заменяем "display-" на пустую строку)
+            // Например: general-info-display-password -> general-info-password
+            // Например: general-info-display-repeat-password -> general-info-repeat-password
             let passwordFieldId = this.id.replace('display-', '');
             
-            // Если замена не дала результата, пробуем другой паттерн
-            const passwordField = document.getElementById(passwordFieldId);
+            // Пробуем найти по ID
+            let passwordField = document.getElementById(passwordFieldId);
+            
+            // Если не нашли по ID, ищем поле пароля в том же блоке .form-password
             if (!passwordField) {
-                // Пытаемся найти поле пароля рядом с чекбоксом
-                const form = this.closest('form');
-                if (form) {
-                    const passwordFields = form.querySelectorAll('input[type="password"]');
-                    // Берем первое найденное поле пароля в форме
-                    if (passwordFields.length > 0) {
-                        passwordFields[0].type = this.checked ? 'text' : 'password';
-                        return;
-                    }
+                const formPasswordDiv = this.closest('.form-password');
+                if (formPasswordDiv) {
+                    // Ищем поле пароля в том же блоке (input с type="password" или type="text")
+                    passwordField = formPasswordDiv.querySelector('input[name="password"], input[name="password_confirmation"], input[name="current_password"], input[type="password"], input[type="text"]');
                 }
-            } else {
+            }
+            
+            // Если нашли поле, меняем его тип
+            if (passwordField) {
                 passwordField.type = this.checked ? 'text' : 'password';
             }
         });
