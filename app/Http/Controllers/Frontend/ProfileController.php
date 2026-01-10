@@ -155,6 +155,13 @@ class ProfileController extends Controller
                                 'from_name' => config('mail.from.name')
                             ]);
                             
+                            // Предупреждение, если драйвер - log
+                            if ($mailDriver === 'log') {
+                                Log::warning('⚠️ ВНИМАНИЕ: Драйвер почты установлен как "log". Письма НЕ будут отправляться реально, а только записываться в логи!');
+                                Log::warning('Для реальной отправки писем измените MAIL_MAILER в .env файле на "smtp" и настройте параметры SMTP (MAIL_HOST, MAIL_PORT, MAIL_USERNAME, MAIL_PASSWORD).');
+                                Log::warning('После изменения выполните: php artisan config:clear');
+                            }
+                            
                             Log::info('Начало отправки письма', [
                                 'to' => $client->email,
                                 'changedFields' => $changedFields
@@ -163,10 +170,17 @@ class ProfileController extends Controller
                             // Отправляем письмо синхронно (не в очередь)
                             Mail::to($client->email)->send(new PasswordChangedMail($client, $changedFields));
                             
-                            Log::info('Письмо об изменении данных успешно отправлено пользователю: ' . $client->email, [
-                                'changedFields' => $changedFields,
-                                'mail_driver' => $mailDriver
-                            ]);
+                            if ($mailDriver === 'log') {
+                                Log::info('Письмо записано в логи (драйвер: log). Для реальной отправки измените MAIL_MAILER на smtp', [
+                                    'changedFields' => $changedFields,
+                                    'user_email' => $client->email
+                                ]);
+                            } else {
+                                Log::info('Письмо об изменении данных успешно отправлено пользователю: ' . $client->email, [
+                                    'changedFields' => $changedFields,
+                                    'mail_driver' => $mailDriver
+                                ]);
+                            }
                         } else {
                             Log::warning('APP_KEY не установлен. Письмо не отправлено пользователю: ' . $client->email);
                         }

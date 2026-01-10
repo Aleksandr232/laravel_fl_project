@@ -43,6 +43,9 @@ class PasswordChangedMail extends Mailable
             $subject = 'Изменение номера телефона в личном кабинете';
         }
 
+        // Laravel автоматически использует настройки из config/mail.php
+        // Для правильной кодировки кириллицы используем стандартный метод from()
+        // Symfony Mailer (используемый Laravel) автоматически правильно кодирует UTF-8 строки
         return $this->subject($subject)
             ->view('emails.password_changed')
             ->with([
