@@ -60,3 +60,4 @@ Route::group(['prefix' => 'profile', 'middleware' => ['auth:client']], function 
 Route::post('/ajax/login', [AuthController::class, 'login'])->name('frontend.ajax.login');
 Route::post('/ajax/register', [AuthController::class, 'register'])->name('frontend.ajax.register');
 Route::post('/ajax/logout', [AuthController::class, 'logout'])->name('frontend.ajax.logout');
+Route::post('/ajax/recover-password', [AuthController::class, 'recoverPassword'])->name('frontend.ajax.recover-password');

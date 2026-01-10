@@ -612,25 +612,20 @@
                 <div class="modal__title">
                     <h2>Восстановление пароля</h2>
                 </div>
-                <form class="modal__form is-success">
+                <form class="modal__form">
+                    <div class="result"></div>
                     <div class="form-input">
-                        <label for="recovery-phone">Введите email, указанный при регистрации*</label>
-                        <input type="tel" id="recovery-phone" placeholder='user@gmail.com' required>
+                        <label for="recovery-email">Введите email, указанный при регистрации*</label>
+                        <input type="email" id="recovery-email" name="email" placeholder='user@gmail.com' required>
                     </div>
                     <div class="modal__btns">
-                        <button type="button" class="btn btn--primary">
+                        <button type="submit" class="btn btn--primary">
                             <svg aria-hidden="true">
                                 <use xlink:href="{{ url('/images/sprite.svg#restore') }}"></use>
                             </svg>
                             <span>Восстановить</span>
                         </button>
                     </div>
-                    <span class="success-message">
-                            <svg aria-hidden="true">
-                                <use xlink:href="{{ url('/images/sprite.svg#check-circle') }}"></use>
-                            </svg>
-                            <span>Код с новым паролем отправлено на указанный email</span>
-                        </span>
                 </form>
             </div>
         </div>

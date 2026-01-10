@@ -7,12 +7,15 @@ use App\Http\Requests\Frontend\Auth\LoginRequest;
 use App\Http\Requests\Frontend\Auth\RegisterRequest;
 use App\Http\Requests\Frontend\Auth\ForgotPasswordRequest;
 use App\Http\Requests\Frontend\Auth\ResetPasswordRequest;
+use App\Mail\PasswordRecoveryMail;
 use App\Models\Clients;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Contracts\View\View;
 use Illuminate\Auth\Events\PasswordReset;
@@ -77,6 +80,104 @@ class AuthController extends Controller
             'success' => false,
             'message' => 'Не удалось отправить ссылку. Попробуйте позже.',
         ], 422);
+    }
+
+    /**
+     * Восстановление пароля - генерация нового 12-символьного пароля и отправка на email
+     *
+     * @param ForgotPasswordRequest $request
+     * @return JsonResponse
+     */
+    public function recoverPassword(ForgotPasswordRequest $request): JsonResponse
+    {
+        try {
+            // Находим пользователя по email
+            $client = Clients::where('email', $request->email)->first();
+
+            if (!$client) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Пользователь с таким email не найден',
+                ], 422);
+            }
+
+            // Генерируем новый безопасный пароль из 12 символов
+            // Используем пароль с гарантированными типами символов (заглавные, строчные, цифры, спецсимволы)
+            $newPassword = $this->generateSecurePassword(12);
+
+            Log::info('Восстановление пароля', [
+                'email' => $client->email,
+                'user_id' => $client->id
+            ]);
+
+            // Обновляем пароль пользователя
+            $client->password = Hash::make($newPassword);
+            $client->save();
+
+            Log::info('Пароль обновлен для восстановления', [
+                'email' => $client->email
+            ]);
+
+            // Отправляем письмо с новым паролем
+            try {
+                Mail::to($client->email)->send(new PasswordRecoveryMail($client, $newPassword));
+                
+                Log::info('Письмо с новым паролем отправлено', [
+                    'email' => $client->email
+                ]);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Новый пароль отправлен на указанный email',
+                ]);
+            } catch (\Exception $e) {
+                Log::error('Ошибка отправки письма при восстановлении пароля: ' . $e->getMessage());
+                
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Пароль изменен, но не удалось отправить письмо. Обратитесь в службу поддержки.',
+                ], 500);
+            }
+
+        } catch (\Exception $e) {
+            Log::error('Ошибка при восстановлении пароля: ' . $e->getMessage());
+            Log::error('Stack trace: ' . $e->getTraceAsString());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Произошла ошибка при восстановлении пароля. Попробуйте позже.',
+            ], 500);
+        }
+    }
+
+    /**
+     * Генерация безопасного пароля с гарантированными типами символов
+     *
+     * @param int $length
+     * @return string
+     */
+    private function generateSecurePassword(int $length = 12): string
+    {
+        $uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $lowercase = 'abcdefghijklmnopqrstuvwxyz';
+        $numbers = '0123456789';
+        $special = '!@#$%^&*';
+        
+        $allChars = $uppercase . $lowercase . $numbers . $special;
+        
+        // Гарантируем минимум по одному символу каждого типа
+        $password = $uppercase[random_int(0, strlen($uppercase) - 1)];
+        $password .= $lowercase[random_int(0, strlen($lowercase) - 1)];
+        $password .= $numbers[random_int(0, strlen($numbers) - 1)];
+        $password .= $special[random_int(0, strlen($special) - 1)];
+        
+        // Заполняем остаток случайными символами
+        for ($i = strlen($password); $i < $length; $i++) {
+            $password .= $allChars[random_int(0, strlen($allChars) - 1)];
+        }
+        
+        // Перемешиваем символы
+        return str_shuffle($password);
     }
 
     public function showResetPasswordForm(Request $request, string $token): View

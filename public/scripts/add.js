@@ -232,31 +232,40 @@ document.addEventListener('DOMContentLoaded', function() {
     // 3. Восстановление пароля
     const recoveryForm = document.querySelector('.modal[data-modal-name="password-recovery"] form');
     if (recoveryForm) {
-        const recoverBtn = recoveryForm.querySelector('button.btn--primary');
-        // Проверяем тип кнопки, чтобы не дублировать события
-        const eventType = recoverBtn.type === 'submit' ? 'submit' : 'click';
-        const target = recoverBtn.type === 'submit' ? recoveryForm : recoverBtn;
-
-        target.addEventListener(eventType, async function(e) {
+        recoveryForm.addEventListener('submit', async function(e) {
             e.preventDefault();
-            const resultDiv = recoveryForm.querySelector('.result');
+            const resultDiv = this.querySelector('.result');
             if(resultDiv) resultDiv.innerHTML = 'Отправка...';
+
+            const emailInput = document.getElementById('recovery-email');
             
-            // Скрываем стандартное сообщение успеха верстки, будем использовать .result
-            const staticSuccess = recoveryForm.querySelector('.success-message');
-            if(staticSuccess) staticSuccess.style.display = 'none';
+            // Проверка заполненности поля
+            if (!emailInput || !emailInput.value.trim()) {
+                showResult(this, 'error', 'Введите email');
+                return;
+            }
 
-            const emailInput = document.getElementById('recovery-phone');
             const formData = new FormData();
-            formData.append('email', emailInput.value);
+            formData.append('email', emailInput.value.trim());
 
-            const result = await sendRequest('/ajax/password/email', formData);
+            const result = await sendRequest('/ajax/recover-password', formData);
 
             if (result.ok) {
-                showResult(recoveryForm, 'success', result.data.message || 'Ссылка отправлена на почту');
+                showResult(this, 'success', result.data.message || 'Новый пароль отправлен на указанный email');
+                // Очищаем форму после успешной отправки
+                this.reset();
+                
+                // Опционально: закрываем модальное окно через 3 секунды
+                setTimeout(() => {
+                    const recoveryModal = document.querySelector('.js-modal[data-modal-name="password-recovery"]');
+                    if (recoveryModal) {
+                        recoveryModal.classList.remove('is-open');
+                    }
+                    document.body.classList.remove('no-scroll');
+                }, 3000);
             } else {
                 const msg = result.data.errors || result.data.message;
-                showResult(recoveryForm, 'error', msg);
+                showResult(this, 'error', msg);
             }
         });
     }
